@@ -36,7 +36,7 @@ export default async function VendasPage({ searchParams }: Props) {
   const where = {
     data: { gte: inicio, lte: fim },
     ...(statusFiltro ? { status: statusFiltro } : {}),
-    ...(!isSocio ? { vendedorId: session!.user.id } : {}),
+    ...(!isSocio && session?.user?.id ? { vendedorId: session.user.id } : {}),
     ...(busca ? {
       OR: [
         { clienteNomeAvulso: { contains: busca } },

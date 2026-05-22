@@ -36,7 +36,7 @@ export default async function VendaDetalhePage({ params }: { params: { id: strin
   if (!venda) notFound();
 
   // Vendedor só vê próprias vendas
-  if (!isSocio && venda.vendedorId !== session!.user.id) notFound();
+  if (!isSocio && session?.user?.id && venda.vendedorId !== session.user.id) notFound();
 
   const sb = STATUS_BADGE[venda.status];
   const margem = venda.valorTotal > 0 ? venda.lucroLimpo / venda.valorTotal : 0;
