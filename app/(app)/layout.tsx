@@ -1,13 +1,11 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
-import { redirect } from "next/navigation";
 import { Sidebar } from "@/components/layout/sidebar";
 import { BottomNav } from "@/components/layout/bottom-nav";
 
+// TEMPORÁRIO — auth desativada para testes. Reativar antes de entregar ao cliente:
+// import { getServerSession } from "next-auth"; import { authOptions } from "@/lib/auth"; import { redirect } from "next/navigation";
+
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
-  // TEMPORÁRIO — reativar auth antes de entregar ao cliente
-  // const session = await getServerSession(authOptions);
-  // if (!session) redirect("/login");
+  // const session = await getServerSession(authOptions); if (!session) redirect("/login");
 
   return (
     <div className="flex min-h-screen">
