@@ -5,8 +5,9 @@ import { Sidebar } from "@/components/layout/sidebar";
 import { BottomNav } from "@/components/layout/bottom-nav";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
-  const session = await getServerSession(authOptions);
-  if (!session) redirect("/login");
+  // TEMPORÁRIO — reativar auth antes de entregar ao cliente
+  // const session = await getServerSession(authOptions);
+  // if (!session) redirect("/login");
 
   return (
     <div className="flex min-h-screen">
