@@ -4,7 +4,6 @@ import { prisma } from "@/lib/prisma";
 import { Role, StatusVenda } from "@prisma/client";
 import Link from "next/link";
 import { formatarMoeda, formatarPercent } from "@/lib/pricing";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { startOfMonth, endOfMonth, format } from "date-fns";

@@ -34,8 +34,6 @@ export function GraficoLucroMensal({ dados }: Props) {
     <div className="flex items-center justify-center h-48 text-zinc-400 text-sm">Sem dados para exibir</div>
   );
 
-  const max = Math.max(...dados.map((d) => d.faturamento), 1);
-
   return (
     <ResponsiveContainer width="100%" height={220}>
       <BarChart data={dados} margin={{ top: 4, right: 8, left: 0, bottom: 0 }} barGap={2}>

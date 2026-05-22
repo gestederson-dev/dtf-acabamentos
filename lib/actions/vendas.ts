@@ -6,20 +6,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Role, StatusVenda, FormaPagamento } from "@prisma/client";
-import { z } from "zod";
 import { calcularAnatomiaVenda, calcularPrecoPorPeca, calcularPrecoPorMetro, arredondarMetragem } from "@/lib/pricing";
-
-const vendaSchema = z.object({
-  clienteId: z.string().optional(),
-  clienteNomeAvulso: z.string().optional(),
-  produtoId: z.string().min(1, "Produto obrigatório"),
-  comEmbalagem: z.boolean(),
-  metros: z.number().positive("Metragem deve ser positiva"),
-  descontoPercent: z.number().min(0).max(1),
-  formaPagamento: z.nativeEnum(FormaPagamento),
-  observacao: z.string().optional(),
-  status: z.nativeEnum(StatusVenda).default(StatusVenda.ORCAMENTO),
-});
 
 export async function salvarVenda(formData: FormData) {
   const session = await getServerSession(authOptions);

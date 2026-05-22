@@ -1,6 +1,4 @@
 import { prisma } from "@/lib/prisma";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import { NovoClienteForm } from "./novo-cliente-form";
 
 export default async function ClientesPage() {

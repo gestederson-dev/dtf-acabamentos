@@ -1,5 +1,5 @@
 import {
-  Document, Page, Text, View, StyleSheet, Font,
+  Document, Page, Text, View, StyleSheet,
 } from "@react-pdf/renderer";
 import type { Venda, Cliente, Produto, User } from "@prisma/client";
 
@@ -41,7 +41,6 @@ const s = StyleSheet.create({
 export function OrcamentoPDF({ venda }: { venda: VendaCompleta }) {
   const nomeCliente = venda.cliente?.nome ?? venda.clienteNomeAvulso ?? "—";
   const nomeProduto = `${venda.produto.nome} ${venda.comEmbalagem ? "c/ embalagem" : "s/ embalagem"}`;
-  const margem = venda.valorTotal > 0 ? venda.lucroLimpo / venda.valorTotal : 0;
   const dataValidade = new Date(venda.criadoEm);
   dataValidade.setDate(dataValidade.getDate() + 7);
 

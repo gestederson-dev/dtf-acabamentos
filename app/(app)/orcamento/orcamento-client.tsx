@@ -1,11 +1,9 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import {
   calcularPrecoPorPeca, calcularPrecoPorMetro, calcularAnatomiaVenda,
   arredondarMetragem, sugerirEmpacotamento, statusMargem,
@@ -33,7 +31,6 @@ interface Props {
 }
 
 export function OrcamentoClient({ config, produtos, clientes, isSocio }: Props) {
-  const router = useRouter();
   const { toast } = useToast();
   const [pending, startTransition] = useTransition();
 

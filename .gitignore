@@ -44,3 +44,5 @@ prisma/dev.db-journal
 # env com segredos
 .env
 
+
+.vercel

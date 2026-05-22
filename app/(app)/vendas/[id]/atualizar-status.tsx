@@ -20,7 +20,7 @@ interface Props {
   statusDisponiveis: StatusVenda[];
 }
 
-export function AtualizarStatus({ vendaId, statusAtual: _, statusDisponiveis }: Props) {
+export function AtualizarStatus({ vendaId, statusDisponiveis }: Props) {
   const [pending, startTransition] = useTransition();
   const { toast } = useToast();
 

@@ -5,7 +5,7 @@ import { Role } from "@prisma/client";
 import { redirect } from "next/navigation";
 import { formatarMoeda } from "@/lib/pricing";
 import { ToggleAtivo } from "./toggle-ativo";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 
 export default async function ProdutosPage() {
   const session = await getServerSession(authOptions);
