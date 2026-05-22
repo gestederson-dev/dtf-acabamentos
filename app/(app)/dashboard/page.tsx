@@ -21,7 +21,7 @@ export default async function DashboardPage() {
   const whereBase = {
     data: { gte: inicioMes, lte: fimMes },
     status: { not: StatusVenda.CANCELADO },
-    ...(isSocio ? {} : { vendedorId: session!.user.id }),
+    ...(isSocio || !session ? {} : { vendedorId: session.user.id }),
   };
 
   const [vendas, totais, config] = await Promise.all([
@@ -62,7 +62,7 @@ export default async function DashboardPage() {
   // Dados para gráficos
   const [grafMensal, grafComissao] = await Promise.all([
     isSocio ? dadosMensais(6) : Promise.resolve([]),
-    !isSocio ? dadosComissaoSemanal(session!.user.id, 8) : Promise.resolve([]),
+    (!isSocio && session?.user?.id) ? dadosComissaoSemanal(session.user.id, 8) : Promise.resolve([]),
   ]);
 
   const mesLabel = format(new Date(), "MMMM 'de' yyyy", { locale: ptBR });
