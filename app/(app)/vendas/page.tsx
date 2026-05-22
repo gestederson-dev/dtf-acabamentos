@@ -154,20 +154,22 @@ export default async function VendasPage({ searchParams }: Props) {
               {vendas.map((v) => {
                 const sb = STATUS_BADGE[v.status];
                 return (
-                  <tr key={v.id} className="hover:bg-zinc-50 cursor-pointer" onClick={() => { window.location.href = `/vendas/${v.id}`; }}>
-                    <td className="px-4 py-3 text-zinc-500">#{v.numero}</td>
-                    <td className="px-4 py-3 text-zinc-500 whitespace-nowrap">{format(v.data, "dd/MM/yy")}</td>
-                    <td className="px-4 py-3 font-medium max-w-[140px] truncate">{v.cliente?.nome ?? v.clienteNomeAvulso ?? "—"}</td>
-                    <td className="px-4 py-3 text-zinc-500 hidden sm:table-cell">{v.produto.nome} {v.comEmbalagem ? "c/emb" : "s/emb"}</td>
-                    <td className="px-4 py-3 text-right tabular-nums hidden md:table-cell">{v.metros} m</td>
-                    <td className="px-4 py-3 text-right tabular-nums font-medium">{formatarMoeda(v.valorTotal)}</td>
-                    {isSocio && <td className="px-4 py-3 text-right tabular-nums text-[#065F46] hidden lg:table-cell">{formatarMoeda(v.lucroLimpo)}</td>}
-                    {!isSocio && <td className="px-4 py-3 text-right tabular-nums text-[#065F46] hidden lg:table-cell">{formatarMoeda(v.custoComissao)}</td>}
-                    <td className="px-4 py-3">
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${sb.class}`}>{sb.label}</span>
-                    </td>
-                    {isSocio && <td className="px-4 py-3 text-zinc-500 hidden xl:table-cell">{v.vendedor.name}</td>}
-                  </tr>
+                  <Link key={v.id} href={`/vendas/${v.id}`} legacyBehavior>
+                    <tr className="hover:bg-zinc-50 cursor-pointer">
+                      <td className="px-4 py-3 text-zinc-500">#{v.numero}</td>
+                      <td className="px-4 py-3 text-zinc-500 whitespace-nowrap">{format(v.data, "dd/MM/yy")}</td>
+                      <td className="px-4 py-3 font-medium max-w-[140px] truncate">{v.cliente?.nome ?? v.clienteNomeAvulso ?? "—"}</td>
+                      <td className="px-4 py-3 text-zinc-500 hidden sm:table-cell">{v.produto.nome} {v.comEmbalagem ? "c/emb" : "s/emb"}</td>
+                      <td className="px-4 py-3 text-right tabular-nums hidden md:table-cell">{v.metros} m</td>
+                      <td className="px-4 py-3 text-right tabular-nums font-medium">{formatarMoeda(v.valorTotal)}</td>
+                      {isSocio && <td className="px-4 py-3 text-right tabular-nums text-[#065F46] hidden lg:table-cell">{formatarMoeda(v.lucroLimpo)}</td>}
+                      {!isSocio && <td className="px-4 py-3 text-right tabular-nums text-[#065F46] hidden lg:table-cell">{formatarMoeda(v.custoComissao)}</td>}
+                      <td className="px-4 py-3">
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${sb.class}`}>{sb.label}</span>
+                      </td>
+                      {isSocio && <td className="px-4 py-3 text-zinc-500 hidden xl:table-cell">{v.vendedor.name}</td>}
+                    </tr>
+                  </Link>
                 );
               })}
             </tbody>
