@@ -8,8 +8,9 @@ import { ptBR } from "date-fns/locale";
 import { formatarMoeda, formatarPercent, statusMargem } from "@/lib/pricing";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AtualizarStatus } from "./atualizar-status";
+import { BotaoPDF } from "@/components/pdf/botao-pdf";
+import { LinkPublico } from "./link-publico";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 
 const STATUS_BADGE: Record<StatusVenda, { label: string; class: string }> = {
   ORCAMENTO: { label: "Orçamento", class: "bg-zinc-100 text-zinc-700" },
@@ -55,7 +56,10 @@ export default async function VendaDetalhePage({ params }: { params: { id: strin
           <h1 className="text-xl font-bold text-zinc-900">Venda #{venda.numero}</h1>
           <p className="text-sm text-zinc-500">{format(venda.data, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}</p>
         </div>
-        <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${sb.class}`}>{sb.label}</span>
+        <div className="flex items-center gap-2 flex-wrap">
+          <BotaoPDF vendaId={venda.id} />
+          <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${sb.class}`}>{sb.label}</span>
+        </div>
       </div>
 
       {/* Info principal */}
@@ -118,24 +122,12 @@ export default async function VendaDetalhePage({ params }: { params: { id: strin
 
       {/* Link público */}
       {venda.shareToken && (
-        <div className="flex items-center gap-3 p-3 bg-zinc-50 border border-zinc-200 rounded-md text-sm">
-          <span className="text-zinc-500 flex-1 truncate">
-            /o/{venda.shareToken}
-          </span>
-          <Button
-            type="button"
-            className="h-7 text-xs px-3 shrink-0"
-            onClick={() => {
-              // handled client-side via component if needed
-            }}
-          >
-            Copiar link
-          </Button>
-        </div>
+        <LinkPublico shareToken={venda.shareToken} />
       )}
     </div>
   );
 }
+
 
 function Row({ label, value, bold, highlight }: { label: string; value: string; bold?: boolean; highlight?: boolean }) {
   return (
