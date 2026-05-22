@@ -12,8 +12,8 @@ interface Props { dados: MesData[] }
 function TooltipCustom({ active, payload, label }: { active?: boolean; payload?: { value: number; name: string; color: string }[]; label?: string }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-white border border-zinc-200 rounded-lg p-3 shadow-sm text-sm space-y-1">
-      <p className="font-semibold text-zinc-700">{label}</p>
+    <div className="rounded-md border border-[#E4E4E7] bg-white p-3 text-sm shadow-sm space-y-1">
+      <p className="font-semibold text-[#232021]">{label}</p>
       {payload.map((p) => (
         <p key={p.name} style={{ color: p.color }}>
           {p.name}: <span className="tabular-nums font-medium">
@@ -26,7 +26,7 @@ function TooltipCustom({ active, payload, label }: { active?: boolean; payload?:
 }
 
 export function GraficoSazonalidade({ dados }: Props) {
-  if (!dados.length) return <div className="flex items-center justify-center h-48 text-zinc-400 text-sm">Sem dados</div>;
+  if (!dados.length) return <div className="flex items-center justify-center h-48 text-[#A1A1AA] text-sm">Sem dados</div>;
   return (
     <ResponsiveContainer width="100%" height={260}>
       <LineChart data={dados} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
@@ -37,7 +37,7 @@ export function GraficoSazonalidade({ dados }: Props) {
         <Tooltip content={<TooltipCustom />} />
         <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 12 }} />
         <Line yAxisId="left" type="monotone" dataKey="faturamento" name="Faturamento" stroke="#18181B" strokeWidth={2} dot={false} />
-        <Line yAxisId="left" type="monotone" dataKey="lucro" name="Lucro" stroke="#065F46" strokeWidth={2} dot={{ r: 3, fill: "#065F46" }} />
+        <Line yAxisId="left" type="monotone" dataKey="lucro" name="Lucro" stroke="#047857" strokeWidth={2} dot={{ r: 3, fill: "#047857" }} />
         <Line yAxisId="right" type="monotone" dataKey="margem" name="Margem" stroke="#D97706" strokeWidth={2} strokeDasharray="4 2" dot={false} />
       </LineChart>
     </ResponsiveContainer>

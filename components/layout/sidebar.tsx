@@ -9,14 +9,15 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Role } from "@prisma/client";
+import { Logo } from "@/components/brand/logo";
 import { DarkModeToggle } from "./dark-mode-toggle";
 
 const navVendas = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/vendas", label: "Vendas", icon: ShoppingCart },
-  { href: "/vendas/nova", label: "Nova Venda", icon: PlusCircle },
-  { href: "/orcamento", label: "Orçamento", icon: FileText },
-  { href: "/clientes", label: "Clientes", icon: Users },
+  { href: "/dashboard",   label: "Dashboard",  icon: LayoutDashboard },
+  { href: "/vendas",      label: "Vendas",      icon: ShoppingCart },
+  { href: "/vendas/nova", label: "Nova Venda",  icon: PlusCircle },
+  { href: "/orcamento",   label: "Orçamento",   icon: FileText },
+  { href: "/clientes",    label: "Clientes",    icon: Users },
 ];
 
 const navAnalise = [
@@ -25,8 +26,8 @@ const navAnalise = [
 
 const navSocio = [
   { href: "/calculadora-preco", label: "Calculadora", icon: Calculator },
-  { href: "/produtos", label: "Produtos", icon: Package },
-  { href: "/configuracoes", label: "Configurações", icon: Settings },
+  { href: "/produtos",          label: "Produtos",     icon: Package },
+  { href: "/configuracoes",     label: "Configurações", icon: Settings },
 ];
 
 const navGuia = [
@@ -47,15 +48,26 @@ function NavItem({ href, label, icon: Icon }: NavItemProps) {
     <Link
       href={href}
       className={cn(
-        "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
+        "flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors duration-150",
         active
-          ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-medium"
-          : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-800"
+          ? "bg-[#232021] text-white dark:bg-white dark:text-[#232021]"
+          : "text-[#52525B] hover:bg-[#F4F4F5] hover:text-[#232021] dark:text-[#71717A] dark:hover:bg-[#27272A] dark:hover:text-white"
       )}
     >
-      <Icon className="w-4 h-4 shrink-0" />
+      <Icon className="h-4 w-4 shrink-0" strokeWidth={1.5} />
       <span>{label}</span>
     </Link>
+  );
+}
+
+function NavSection({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="mb-5">
+      <p className="mb-1 px-3 text-[10px] font-medium uppercase tracking-widest text-[#A1A1AA]">
+        {label}
+      </p>
+      <div className="space-y-0.5">{children}</div>
+    </div>
   );
 }
 
@@ -64,30 +76,30 @@ export function Sidebar() {
   const isSocio = session?.user?.role === Role.SOCIO;
 
   return (
-    <aside className="hidden md:flex flex-col w-60 min-h-screen border-r border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
+    <aside className="hidden md:flex w-60 flex-col border-r border-[#E4E4E7] bg-white dark:border-[#27272A] dark:bg-[#0A0A0B]">
       {/* Logo */}
-      <div className="px-6 py-5 border-b border-zinc-200 dark:border-zinc-800">
-        <p className="font-bold text-zinc-900 text-base leading-tight">DTF Acabamentos</p>
-        <p className="text-xs text-zinc-500 mt-0.5">Sistema Comercial</p>
+      <div className="flex h-14 items-center gap-3 border-b border-[#E4E4E7] px-5 dark:border-[#27272A]">
+        <Logo />
+        <div className="flex flex-col leading-none">
+          <span className="text-sm font-semibold tracking-tight text-[#232021] dark:text-white">DTF</span>
+          <span className="text-[10px] text-[#71717A]">Acabamentos</span>
+        </div>
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 px-3 py-4 space-y-5 overflow-y-auto">
-        <div className="space-y-0.5">
-          <p className="px-3 text-[10px] font-semibold uppercase tracking-wider text-zinc-400 mb-1">Vendas</p>
+      <nav className="flex-1 overflow-y-auto px-3 py-5">
+        <NavSection label="Comercial">
           {navVendas.map((item) => <NavItem key={item.href} {...item} />)}
-        </div>
+        </NavSection>
 
-        <div className="space-y-0.5">
-          <p className="px-3 text-[10px] font-semibold uppercase tracking-wider text-zinc-400 mb-1">Análise</p>
+        <NavSection label="Análise">
           {navAnalise.map((item) => <NavItem key={item.href} {...item} />)}
-        </div>
+        </NavSection>
 
         {isSocio && (
-          <div className="space-y-0.5">
-            <p className="px-3 text-[10px] font-semibold uppercase tracking-wider text-zinc-400 mb-1">Configurações</p>
+          <NavSection label="Gestão">
             {navSocio.map((item) => <NavItem key={item.href} {...item} />)}
-          </div>
+          </NavSection>
         )}
 
         <div className="space-y-0.5">
@@ -95,20 +107,24 @@ export function Sidebar() {
         </div>
       </nav>
 
-      {/* Usuário */}
-      <div className="px-3 py-3 border-t border-zinc-200 dark:border-zinc-800">
-        <div className="px-3 py-2 mb-1">
-          <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100 truncate">{session?.user?.name}</p>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400">{isSocio ? "Sócio" : "Vendedor"}</p>
+      {/* Rodapé: usuário + ações */}
+      <div className="border-t border-[#E4E4E7] px-3 py-3 dark:border-[#27272A]">
+        <div className="mb-1 px-3 py-2">
+          <p className="truncate text-sm font-medium text-[#232021] dark:text-white">
+            {session?.user?.name ?? "—"}
+          </p>
+          <p className="text-xs text-[#71717A]">{isSocio ? "Sócio" : "Vendedor"}</p>
         </div>
-        <DarkModeToggle />
-        <button
-          onClick={() => signOut({ callbackUrl: "/login" })}
-          className="flex items-center gap-3 w-full px-3 py-2 rounded-md text-sm text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50 dark:text-zinc-400 dark:hover:text-zinc-100 dark:hover:bg-zinc-800 transition-colors"
-        >
-          <LogOut className="w-4 h-4" />
-          <span>Sair</span>
-        </button>
+        <div className="flex items-center gap-1">
+          <DarkModeToggle />
+          <button
+            onClick={() => signOut({ callbackUrl: "/login" })}
+            className="flex flex-1 items-center gap-2 rounded-md px-3 py-2 text-sm text-[#71717A] transition-colors hover:bg-[#F4F4F5] hover:text-[#232021] dark:hover:bg-[#27272A] dark:hover:text-white"
+          >
+            <LogOut className="h-4 w-4" strokeWidth={1.5} />
+            <span>Sair</span>
+          </button>
+        </div>
       </div>
     </aside>
   );

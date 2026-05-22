@@ -6,18 +6,17 @@ import { notFound } from "next/navigation";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { formatarMoeda, formatarPercent, statusMargem } from "@/lib/pricing";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AtualizarStatus } from "./atualizar-status";
 import { BotaoPDF } from "@/components/pdf/botao-pdf";
 import { LinkPublico } from "./link-publico";
 import Link from "next/link";
 
-const STATUS_BADGE: Record<StatusVenda, { label: string; class: string }> = {
-  ORCAMENTO: { label: "Orçamento", class: "bg-zinc-100 text-zinc-700" },
-  CONFIRMADO: { label: "Confirmado", class: "bg-blue-50 text-blue-700" },
-  ENTREGUE: { label: "Entregue", class: "bg-purple-50 text-purple-700" },
-  PAGO: { label: "Pago", class: "bg-green-50 text-[#065F46]" },
-  CANCELADO: { label: "Cancelado", class: "bg-red-50 text-red-700" },
+const STATUS_BADGE: Record<StatusVenda, { label: string; cls: string }> = {
+  ORCAMENTO:  { label: "Orçamento",  cls: "border-[#E4E4E7] bg-white text-[#52525B]" },
+  CONFIRMADO: { label: "Confirmado", cls: "border-[#232021] bg-[#232021] text-white" },
+  ENTREGUE:   { label: "Entregue",   cls: "border-[#E4E4E7] bg-[#F4F4F5] text-[#52525B]" },
+  PAGO:       { label: "Pago",       cls: "border-[#A7F3D0] bg-[#ECFDF5] text-[#047857]" },
+  CANCELADO:  { label: "Cancelado",  cls: "border-[#FECACA] bg-[#FEF2F2] text-[#B91C1C]" },
 };
 
 const FORMA_LABEL: Record<string, string> = {
@@ -35,105 +34,140 @@ export default async function VendaDetalhePage({ params }: { params: { id: strin
   });
   if (!venda) notFound();
 
-  // Vendedor só vê próprias vendas
   if (!isSocio && session?.user?.id && venda.vendedorId !== session.user.id) notFound();
 
   const sb = STATUS_BADGE[venda.status];
   const margem = venda.valorTotal > 0 ? venda.lucroLimpo / venda.valorTotal : 0;
   const sm = statusMargem(margem);
   const nomeCliente = venda.cliente?.nome ?? venda.clienteNomeAvulso ?? "—";
-
   const statusDisponiveis = Object.values(StatusVenda).filter((s) => s !== venda.status);
 
   return (
-    <div className="p-6 max-w-3xl space-y-5">
+    <div className="mx-auto max-w-3xl px-4 py-6 lg:px-8 lg:py-10">
+
       {/* Header */}
-      <div className="flex items-start justify-between flex-wrap gap-3">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <Link href="/vendas" className="text-zinc-400 hover:text-zinc-700 text-sm">← Vendas</Link>
+      <div className="mb-8">
+        <Link href="/vendas" className="mb-3 inline-flex items-center gap-1 text-sm text-[#71717A] transition-colors hover:text-[#232021] dark:hover:text-white">
+          ← Vendas
+        </Link>
+        <div className="flex items-start justify-between flex-wrap gap-4">
+          <div>
+            <h1 className="text-xl font-semibold tracking-tight text-[#232021] dark:text-white">
+              Venda #{venda.numero}
+            </h1>
+            <p className="mt-0.5 text-sm capitalize text-[#71717A]">
+              {format(venda.data, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+            </p>
           </div>
-          <h1 className="text-xl font-bold text-zinc-900">Venda #{venda.numero}</h1>
-          <p className="text-sm text-zinc-500">{format(venda.data, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}</p>
-        </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          <BotaoPDF vendaId={venda.id} />
-          <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${sb.class}`}>{sb.label}</span>
+          <div className="flex items-center gap-2 flex-wrap">
+            <BotaoPDF vendaId={venda.id} />
+            <span className={`inline-flex items-center rounded-sm border px-2.5 py-1 text-xs font-medium ${sb.cls}`}>
+              {sb.label}
+            </span>
+          </div>
         </div>
       </div>
 
-      {/* Info principal */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-sm font-semibold">Dados da venda</CardTitle></CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            <Row label="Cliente" value={nomeCliente} />
-            <Row label="Produto" value={`${venda.produto.nome} ${venda.comEmbalagem ? "c/ embalagem" : "s/ embalagem"}`} />
-            <Row label="Metragem" value={`${venda.metros} m (${venda.pecas} peças)`} />
-            <Row label="Preço/metro" value={formatarMoeda(venda.precoUnitario)} />
-            {venda.descontoPercent > 0 && <Row label="Desconto" value={formatarPercent(venda.descontoPercent)} />}
-            <Row label="Forma de pagamento" value={FORMA_LABEL[venda.formaPagamento] ?? venda.formaPagamento} />
-            <Row label="Vendedor" value={venda.vendedor.name ?? "—"} />
-            {venda.observacao && <Row label="Observação" value={venda.observacao} />}
-          </CardContent>
-        </Card>
+      {/* Cartões */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 mb-4">
+        {/* Dados da venda */}
+        <div className="rounded-md border border-[#E4E4E7] bg-white dark:border-[#27272A] dark:bg-[#18181B]">
+          <div className="border-b border-[#E4E4E7] px-5 py-4 dark:border-[#27272A]">
+            <p className="text-sm font-semibold text-[#232021] dark:text-white">Dados da venda</p>
+          </div>
+          <div className="space-y-3 px-5 py-4 text-sm">
+            <DataRow label="Cliente" value={nomeCliente} />
+            <DataRow label="Produto" value={`${venda.produto.nome} ${venda.comEmbalagem ? "c/ embalagem" : "s/ embalagem"}`} />
+            <DataRow label="Metragem" value={`${venda.metros} m (${venda.pecas} peças)`} />
+            <DataRow label="Preço/metro" value={formatarMoeda(venda.precoUnitario)} mono />
+            {venda.descontoPercent > 0 && <DataRow label="Desconto" value={formatarPercent(venda.descontoPercent)} />}
+            <DataRow label="Pagamento" value={FORMA_LABEL[venda.formaPagamento] ?? venda.formaPagamento} />
+            <DataRow label="Vendedor" value={venda.vendedor.name ?? "—"} />
+            {venda.observacao && <DataRow label="Observação" value={venda.observacao} />}
+          </div>
+        </div>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold flex items-center justify-between">
-              {isSocio ? "Anatomia financeira" : "Resultado"}
-              {isSocio && <span className="text-xs font-normal" style={{ color: sm.cor }}>{sm.emoji} {sm.label}</span>}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2 text-sm">
+        {/* Financeiro */}
+        <div className="rounded-md border border-[#E4E4E7] bg-white dark:border-[#27272A] dark:bg-[#18181B]">
+          <div className="border-b border-[#E4E4E7] px-5 py-4 dark:border-[#27272A]">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-semibold text-[#232021] dark:text-white">
+                {isSocio ? "Anatomia financeira" : "Resultado"}
+              </p>
+              {isSocio && (
+                <span className="text-xs font-medium" style={{ color: sm.cor }}>
+                  {sm.emoji} {sm.label}
+                </span>
+              )}
+            </div>
+          </div>
+          <div className="space-y-3 px-5 py-4 text-sm">
             {isSocio ? (
               <>
-                <Row label="Faturamento bruto" value={formatarMoeda(venda.valorTotal + venda.descontoPercent * (venda.valorTotal / (1 - venda.descontoPercent)))} />
-                <Row label="Custo produto" value={`-${formatarMoeda(venda.custoProduto)}`} />
-                <Row label="Custo embalagem" value={`-${formatarMoeda(venda.custoEmbalagem)}`} />
-                <Row label="Imposto" value={`-${formatarMoeda(venda.custoImposto)}`} />
-                <Row label="Comissão" value={`-${formatarMoeda(venda.custoComissao)}`} />
-                <div className="border-t border-zinc-100 pt-2">
-                  <Row label="TOTAL" value={formatarMoeda(venda.valorTotal)} bold />
-                  <Row label="💰 Lucro líquido" value={formatarMoeda(venda.lucroLimpo)} highlight />
-                  <Row label="Margem real" value={formatarPercent(margem)} />
+                <DataRow label="Custo produto" value={`-${formatarMoeda(venda.custoProduto)}`} mono />
+                <DataRow label="Custo embalagem" value={`-${formatarMoeda(venda.custoEmbalagem)}`} mono />
+                <DataRow label="Imposto" value={`-${formatarMoeda(venda.custoImposto)}`} mono />
+                <DataRow label="Comissão" value={`-${formatarMoeda(venda.custoComissao)}`} mono />
+                <div className="border-t border-[#E4E4E7] pt-3 dark:border-[#27272A]">
+                  <DataRow label="Total" value={formatarMoeda(venda.valorTotal)} mono bold />
+                  <div className="mt-3">
+                    <DataRow label="Lucro líquido" value={formatarMoeda(venda.lucroLimpo)} mono accent />
+                  </div>
+                  <div className="mt-3">
+                    <DataRow label="Margem real" value={formatarPercent(margem)} />
+                  </div>
                 </div>
               </>
             ) : (
               <>
-                <Row label="Total da venda" value={formatarMoeda(venda.valorTotal)} bold />
-                <Row label="Sua comissão" value={formatarMoeda(venda.custoComissao)} highlight />
-                <Row label="Comissão/metro" value={formatarMoeda(venda.custoComissao / venda.metros)} />
+                <DataRow label="Total da venda" value={formatarMoeda(venda.valorTotal)} mono bold />
+                <div className="border-t border-[#E4E4E7] pt-3 dark:border-[#27272A]">
+                  <DataRow label="Sua comissão" value={formatarMoeda(venda.custoComissao)} mono accent />
+                  <div className="mt-3">
+                    <DataRow label="Comissão/metro" value={formatarMoeda(venda.custoComissao / venda.metros)} mono />
+                  </div>
+                </div>
               </>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       {/* Atualizar status */}
       {venda.status !== StatusVenda.CANCELADO && (
-        <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-sm font-semibold">Atualizar status</CardTitle></CardHeader>
-          <CardContent>
+        <div className="mb-4 rounded-md border border-[#E4E4E7] bg-white dark:border-[#27272A] dark:bg-[#18181B]">
+          <div className="border-b border-[#E4E4E7] px-5 py-4 dark:border-[#27272A]">
+            <p className="text-sm font-semibold text-[#232021] dark:text-white">Atualizar status</p>
+          </div>
+          <div className="px-5 py-4">
             <AtualizarStatus vendaId={venda.id} statusAtual={venda.status} statusDisponiveis={statusDisponiveis} />
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
       {/* Link público */}
-      {venda.shareToken && (
-        <LinkPublico shareToken={venda.shareToken} />
-      )}
+      {venda.shareToken && <LinkPublico shareToken={venda.shareToken} />}
     </div>
   );
 }
 
+function DataRow({
+  label, value, mono, bold, accent,
+}: {
+  label: string; value: string;
+  mono?: boolean; bold?: boolean; accent?: boolean;
+}) {
+  const valCls = [
+    "text-right",
+    mono ? "font-mono tabular-nums" : "",
+    bold ? "font-semibold text-[#232021] dark:text-white" : "text-[#52525B] dark:text-[#A1A1AA]",
+    accent ? "!text-[#047857] font-semibold" : "",
+  ].join(" ");
 
-function Row({ label, value, bold, highlight }: { label: string; value: string; bold?: boolean; highlight?: boolean }) {
   return (
-    <div className="flex justify-between items-start gap-2">
-      <span className="text-zinc-500 shrink-0">{label}</span>
-      <span className={`text-right tabular-nums ${bold ? "font-bold" : ""} ${highlight ? "font-semibold text-[#065F46]" : ""}`}>{value}</span>
+    <div className="flex items-start justify-between gap-4">
+      <span className="shrink-0 text-[#71717A]">{label}</span>
+      <span className={valCls}>{value}</span>
     </div>
   );
 }

@@ -12,14 +12,14 @@ export function LinkPublico({ shareToken }: { shareToken: string }) {
   }
 
   return (
-    <div className="flex items-center gap-3 p-3 bg-zinc-50 border border-zinc-200 rounded-md text-sm">
-      <span className="text-zinc-500 flex-1 truncate">/o/{shareToken}</span>
+    <div className="flex items-center gap-3 rounded-md border border-[#E4E4E7] bg-[#FAFAFA] px-4 py-3 dark:border-[#27272A] dark:bg-[#18181B]">
+      <span className="flex-1 truncate font-mono text-xs text-[#71717A]">/o/{shareToken}</span>
       <button
         type="button"
         onClick={copiar}
-        className="h-7 text-xs px-3 rounded-md bg-zinc-900 text-white font-medium hover:bg-zinc-700 transition-colors shrink-0"
+        className="h-8 shrink-0 rounded-md bg-[#232021] px-3 text-xs font-medium text-white transition-colors hover:bg-[#3F3F46] active:scale-[0.98] dark:bg-white dark:text-[#232021] dark:hover:bg-[#F4F4F5]"
       >
-        {copiado ? "✅ Copiado!" : "Copiar link"}
+        {copiado ? "Copiado!" : "Copiar link"}
       </button>
     </div>
   );

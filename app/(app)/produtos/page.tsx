@@ -5,7 +5,6 @@ import { Role } from "@prisma/client";
 import { redirect } from "next/navigation";
 import { formatarMoeda } from "@/lib/pricing";
 import { ToggleAtivo } from "./toggle-ativo";
-import { Card, CardContent } from "@/components/ui/card";
 
 export default async function ProdutosPage() {
   const session = await getServerSession(authOptions);
@@ -14,27 +13,40 @@ export default async function ProdutosPage() {
   const produtos = await prisma.produto.findMany({ orderBy: { larguraCm: "desc" } });
 
   return (
-    <div className="p-6 max-w-2xl space-y-5">
-      <h1 className="text-xl font-bold text-zinc-900">Produtos</h1>
+    <div className="mx-auto max-w-2xl px-4 py-6 lg:px-8 lg:py-10">
+
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-xl font-semibold tracking-tight text-[#232021] dark:text-white">Produtos</h1>
+        <p className="mt-0.5 text-sm text-[#71717A]">{produtos.length} produto{produtos.length !== 1 ? "s" : ""} cadastrado{produtos.length !== 1 ? "s" : ""}</p>
+      </div>
+
       <div className="space-y-3">
         {produtos.map((p) => (
-          <Card key={p.id}>
-            <CardContent className="pt-4 pb-4">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="font-semibold text-zinc-900">{p.nome}</p>
-                  <p className="text-sm text-zinc-500 mt-0.5">
-                    Custo unitário: <span className="tabular-nums font-medium text-zinc-700">{formatarMoeda(p.custoUnitario)}/peça</span>
-                  </p>
-                  <p className="text-sm text-zinc-500">Largura: {p.larguraCm} cm</p>
-                </div>
-                <ToggleAtivo produtoId={p.id} ativo={p.ativo} />
+          <div key={p.id} className="rounded-md border border-[#E4E4E7] bg-white dark:border-[#27272A] dark:bg-[#18181B]">
+            <div className="flex items-center justify-between gap-4 px-5 py-4">
+              <div>
+                <p className={`font-semibold ${p.ativo ? "text-[#232021] dark:text-white" : "text-[#A1A1AA]"}`}>
+                  {p.nome}
+                </p>
+                <p className="mt-1 text-sm text-[#71717A]">
+                  Custo unitário:{" "}
+                  <span className="font-mono tabular-nums font-medium text-[#232021] dark:text-white">
+                    {formatarMoeda(p.custoUnitario)}/peça
+                  </span>
+                  {" · "}
+                  {p.larguraCm} cm
+                </p>
               </div>
-            </CardContent>
-          </Card>
+              <ToggleAtivo produtoId={p.id} ativo={p.ativo} />
+            </div>
+          </div>
         ))}
       </div>
-      <p className="text-xs text-zinc-400">Para alterar custos, use a página Calculadora de Preço.</p>
+
+      <p className="mt-6 text-xs text-[#A1A1AA]">
+        Para alterar custos, use a página Calculadora de Preço.
+      </p>
     </div>
   );
 }

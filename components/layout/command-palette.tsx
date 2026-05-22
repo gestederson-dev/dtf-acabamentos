@@ -70,9 +70,9 @@ export function CommandPalette() {
       className="fixed inset-0 z-50 bg-black/50 flex items-start justify-center pt-[20vh]"
       onClick={(e) => { if (e.target === e.currentTarget) setOpen(false); }}
     >
-      <div className="w-full max-w-lg bg-white rounded-xl shadow-2xl overflow-hidden border border-zinc-200">
-        <div className="flex items-center gap-2 px-4 py-3 border-b border-zinc-100">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-zinc-400 shrink-0">
+      <div className="w-full max-w-lg overflow-hidden rounded-md border border-[#E4E4E7] bg-white shadow-lg dark:border-[#27272A] dark:bg-[#18181B]">
+        <div className="flex items-center gap-2 border-b border-[#E4E4E7] px-4 py-3 dark:border-[#27272A]">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-[#A1A1AA]">
             <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
           </svg>
           <input
@@ -80,35 +80,35 @@ export function CommandPalette() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Buscar página..."
-            className="flex-1 bg-transparent text-sm outline-none text-zinc-900 placeholder:text-zinc-400"
+            className="flex-1 bg-transparent text-sm text-[#232021] outline-none placeholder:text-[#A1A1AA] dark:text-white"
             onKeyDown={(e) => {
               if (e.key === "Enter" && filtered[0]) navigate(filtered[0].href);
             }}
           />
-          <kbd className="hidden sm:inline-flex items-center gap-1 px-1.5 py-0.5 rounded border border-zinc-200 text-xs text-zinc-400">Esc</kbd>
+          <kbd className="hidden items-center gap-1 rounded border border-[#E4E4E7] px-1.5 py-0.5 text-xs text-[#A1A1AA] sm:inline-flex dark:border-[#27272A]">Esc</kbd>
         </div>
 
-        <div className="py-1.5 max-h-72 overflow-y-auto">
+        <div className="max-h-72 overflow-y-auto py-1.5">
           {filtered.length === 0 && (
-            <p className="px-4 py-6 text-center text-sm text-zinc-400">Nenhum resultado</p>
+            <p className="px-4 py-6 text-center text-sm text-[#A1A1AA]">Nenhum resultado</p>
           )}
           {filtered.map((cmd) => (
             <button
               key={cmd.href}
               type="button"
               onClick={() => navigate(cmd.href)}
-              className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-zinc-50 text-left transition-colors"
+              className="flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-[#F4F4F5] dark:hover:bg-[#27272A]"
             >
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-zinc-900">{cmd.label}</p>
-                <p className="text-xs text-zinc-500 truncate">{cmd.desc}</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-[#232021] dark:text-white">{cmd.label}</p>
+                <p className="truncate text-xs text-[#71717A]">{cmd.desc}</p>
               </div>
-              <kbd className="hidden sm:inline-flex shrink-0 items-center px-1.5 py-0.5 rounded border border-zinc-200 text-xs text-zinc-400">↵</kbd>
+              <kbd className="hidden shrink-0 items-center rounded border border-[#E4E4E7] px-1.5 py-0.5 text-xs text-[#A1A1AA] sm:inline-flex dark:border-[#27272A]">↵</kbd>
             </button>
           ))}
         </div>
 
-        <div className="px-4 py-2 border-t border-zinc-100 flex gap-3 text-xs text-zinc-400">
+        <div className="flex gap-3 border-t border-[#E4E4E7] px-4 py-2 text-xs text-[#A1A1AA] dark:border-[#27272A]">
           <span><kbd className="font-mono">↑↓</kbd> navegar</span>
           <span><kbd className="font-mono">↵</kbd> ir</span>
           <span><kbd className="font-mono">Esc</kbd> fechar</span>

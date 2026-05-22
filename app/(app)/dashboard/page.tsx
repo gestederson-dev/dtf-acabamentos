@@ -2,7 +2,6 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Role, StatusVenda } from "@prisma/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatarMoeda, formatarPercent } from "@/lib/pricing";
 import { startOfMonth, endOfMonth, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -46,7 +45,6 @@ export default async function DashboardPage() {
   const numVendas = totais._count.id;
   const margem = faturamento > 0 ? lucro / faturamento : 0;
 
-  // Alerta MEI (faturamento anual)
   const anoAtual = new Date().getFullYear();
   const faturamentoAnual = await prisma.venda.aggregate({
     where: {
@@ -59,7 +57,6 @@ export default async function DashboardPage() {
   const tetoMEI = config?.tetoMEIAnual ?? 81000;
   const percentMEI = fatAnual / tetoMEI;
 
-  // Dados para gráficos
   const [grafMensal, grafComissao] = await Promise.all([
     isSocio ? dadosMensais(6) : Promise.resolve([]),
     (!isSocio && session?.user?.id) ? dadosComissaoSemanal(session.user.id, 8) : Promise.resolve([]),
@@ -67,38 +64,57 @@ export default async function DashboardPage() {
 
   const mesLabel = format(new Date(), "MMMM 'de' yyyy", { locale: ptBR });
 
+  const STATUS_BADGE: Record<StatusVenda, { label: string; cls: string }> = {
+    ORCAMENTO:  { label: "Orçamento",  cls: "border-[#E4E4E7] bg-white text-[#52525B]" },
+    CONFIRMADO: { label: "Confirmado", cls: "border-[#232021] bg-[#232021] text-white" },
+    ENTREGUE:   { label: "Entregue",   cls: "border-[#E4E4E7] bg-[#F4F4F5] text-[#52525B]" },
+    PAGO:       { label: "Pago",       cls: "border-[#A7F3D0] bg-[#ECFDF5] text-[#047857]" },
+    CANCELADO:  { label: "Cancelado",  cls: "border-[#FECACA] bg-[#FEF2F2] text-[#B91C1C]" },
+  };
+
   return (
-    <div className="p-6 space-y-6">
-      <div>
-        <h1 className="text-xl font-bold text-zinc-900">Dashboard</h1>
-        <p className="text-sm text-zinc-500 capitalize">{mesLabel}</p>
+    <div className="mx-auto max-w-7xl px-4 py-6 lg:px-8 lg:py-10">
+
+      {/* Page header */}
+      <div className="mb-8">
+        <h1 className="text-xl font-semibold tracking-tight text-[#232021] dark:text-white">Dashboard</h1>
+        <p className="mt-0.5 text-sm capitalize text-[#71717A]">{mesLabel}</p>
+      </div>
+
+      {/* Separador decorativo */}
+      <div className="mb-8 flex items-center gap-3">
+        <span className="h-px flex-1 bg-[#E4E4E7] dark:bg-[#27272A]" />
+        <span className="text-[10px] font-medium uppercase tracking-widest text-[#A1A1AA]">Painel · DTF Acabamentos</span>
+        <span className="h-px flex-1 bg-[#E4E4E7] dark:bg-[#27272A]" />
       </div>
 
       {/* Alertas MEI */}
       {isSocio && percentMEI > 0.7 && (
-        <div className={`rounded-lg px-4 py-3 text-sm font-medium border ${percentMEI > 0.9
-          ? "bg-red-50 text-red-800 border-red-200"
-          : "bg-yellow-50 text-yellow-800 border-yellow-200"}`}>
+        <div className={`mb-6 rounded-md border px-4 py-3 text-sm font-medium ${
+          percentMEI > 0.9
+            ? "border-[#FECACA] bg-[#FEF2F2] text-[#B91C1C]"
+            : "border-[#FDE68A] bg-[#FFFBEB] text-[#B45309]"
+        }`}>
           {percentMEI > 0.9 ? "🚨" : "⚠️"} Faturamento anual: {formatarMoeda(fatAnual)} ({formatarPercent(percentMEI)} do teto MEI de {formatarMoeda(tetoMEI)})
         </div>
       )}
       {isSocio && margem > 0 && margem < 0.30 && (
-        <div className="rounded-lg px-4 py-3 text-sm font-medium bg-yellow-50 text-yellow-800 border border-yellow-200">
+        <div className="mb-6 rounded-md border border-[#FDE68A] bg-[#FFFBEB] px-4 py-3 text-sm font-medium text-[#B45309]">
           ⚠️ Margem média do mês: {formatarPercent(margem)} — abaixo de 30%
         </div>
       )}
 
       {/* KPIs */}
-      <div className={`grid gap-4 ${isSocio ? "grid-cols-2 lg:grid-cols-4" : "grid-cols-2 lg:grid-cols-3"}`}>
+      <div className={`mb-8 grid gap-4 ${isSocio ? "grid-cols-2 lg:grid-cols-4" : "grid-cols-2 lg:grid-cols-3"}`}>
         {isSocio ? (
           <>
             <KpiCard title="Faturamento" value={formatarMoeda(faturamento)} sub={`${numVendas} venda${numVendas !== 1 ? "s" : ""}`} />
             <KpiCard title="Custos" value={formatarMoeda(faturamento - lucro)} />
-            <KpiCard title="Lucro Líquido" value={formatarMoeda(lucro)} highlight />
+            <KpiCard title="Lucro Líquido" value={formatarMoeda(lucro)} accent />
             <KpiCard
               title="Margem"
               value={formatarPercent(margem)}
-              highlight={margem >= 0.35}
+              accent={margem >= 0.35}
               warning={margem < 0.35 && margem >= 0.25}
               danger={margem > 0 && margem < 0.25}
             />
@@ -106,7 +122,7 @@ export default async function DashboardPage() {
         ) : (
           <>
             <KpiCard title="Vendas do Mês" value={numVendas.toString()} sub={`${metros.toFixed(1)} m`} />
-            <KpiCard title="Comissão" value={formatarMoeda(comissao)} highlight />
+            <KpiCard title="Comissão" value={formatarMoeda(comissao)} accent />
             <KpiCard title="Ticket Médio" value={numVendas > 0 ? formatarMoeda(faturamento / numVendas) : "R$ 0,00"} />
           </>
         )}
@@ -114,87 +130,112 @@ export default async function DashboardPage() {
 
       {/* Gráficos */}
       {isSocio && (
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold">Lucro Líquido — últimos 6 meses</CardTitle>
-            <p className="text-xs text-zinc-400">Verde escuro ≥35% · Amarelo 25–35% · Vermelho &lt;25%</p>
-          </CardHeader>
-          <CardContent className="pt-0">
+        <div className="mb-8 rounded-md border border-[#E4E4E7] bg-white dark:border-[#27272A] dark:bg-[#18181B]">
+          <div className="border-b border-[#E4E4E7] px-5 py-4 dark:border-[#27272A]">
+            <p className="text-sm font-semibold text-[#232021] dark:text-white">Lucro Líquido — últimos 6 meses</p>
+            <p className="mt-0.5 text-xs text-[#71717A]">Verde ≥35% · Amarelo 25–35% · Vermelho &lt;25%</p>
+          </div>
+          <div className="p-5">
             <GraficoLucroMensal dados={grafMensal} />
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
       {!isSocio && (
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-semibold">Comissão semanal — últimas 8 semanas</CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0">
+        <div className="mb-8 rounded-md border border-[#E4E4E7] bg-white dark:border-[#27272A] dark:bg-[#18181B]">
+          <div className="border-b border-[#E4E4E7] px-5 py-4 dark:border-[#27272A]">
+            <p className="text-sm font-semibold text-[#232021] dark:text-white">Comissão semanal — últimas 8 semanas</p>
+          </div>
+          <div className="p-5">
             <GraficoComissaoSemanal dados={grafComissao} />
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
       {/* Últimas vendas */}
       <div>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm font-semibold text-zinc-700">Últimas vendas</h2>
-          <Link href="/vendas" className="text-xs text-zinc-500 hover:text-zinc-900 underline">Ver todas</Link>
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-[#232021] dark:text-white">Últimas vendas</h2>
+          <Link href="/vendas" className="text-xs text-[#71717A] underline-offset-2 hover:text-[#232021] hover:underline dark:hover:text-white">
+            Ver todas →
+          </Link>
         </div>
+
         {vendas.length === 0 ? (
-          <div className="text-center py-12 text-zinc-400 text-sm border border-dashed border-zinc-200 rounded-lg">
-            Nenhuma venda no mês.{" "}
-            <Link href="/vendas/nova" className="text-zinc-700 underline">Registrar venda</Link>
+          <div className="rounded-md border border-dashed border-[#E4E4E7] py-14 text-center dark:border-[#27272A]">
+            <p className="text-sm text-[#71717A]">Nenhuma venda registrada este mês.</p>
+            <Link href="/vendas/nova" className="mt-2 inline-block text-sm font-medium text-[#232021] underline-offset-2 hover:underline dark:text-white">
+              Registrar primeira venda →
+            </Link>
           </div>
         ) : (
-          <div className="border border-zinc-200 rounded-lg overflow-hidden">
+          <div className="overflow-hidden rounded-md border border-[#E4E4E7] dark:border-[#27272A]">
             <table className="w-full text-sm">
-              <thead className="bg-zinc-50 border-b border-zinc-200">
+              <thead className="border-b border-[#E4E4E7] bg-[#FAFAFA] dark:border-[#27272A] dark:bg-[#18181B]">
                 <tr>
-                  <th className="text-left px-4 py-2 font-medium text-zinc-600">#</th>
-                  <th className="text-left px-4 py-2 font-medium text-zinc-600">Cliente</th>
-                  <th className="text-left px-4 py-2 font-medium text-zinc-600 hidden sm:table-cell">Produto</th>
-                  <th className="text-right px-4 py-2 font-medium text-zinc-600 tabular-nums">Total</th>
-                  {isSocio && <th className="text-right px-4 py-2 font-medium text-zinc-600 tabular-nums hidden md:table-cell">Lucro</th>}
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#71717A]">#</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#71717A]">Cliente</th>
+                  <th className="hidden px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#71717A] sm:table-cell">Produto</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-[#71717A]">Total</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#71717A]">Status</th>
+                  {isSocio && <th className="hidden px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-[#71717A] md:table-cell">Lucro</th>}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-100">
-                {vendas.map((v) => (
-                  <Link key={v.id} href={`/vendas/${v.id}`} legacyBehavior>
-                    <tr className="hover:bg-zinc-50 cursor-pointer">
-                      <td className="px-4 py-2.5 text-zinc-500">#{v.numero}</td>
-                      <td className="px-4 py-2.5 font-medium">{v.cliente?.nome ?? v.clienteNomeAvulso ?? "—"}</td>
-                      <td className="px-4 py-2.5 text-zinc-500 hidden sm:table-cell">{v.produto.nome}</td>
-                      <td className="px-4 py-2.5 text-right tabular-nums font-medium">{formatarMoeda(v.valorTotal)}</td>
-                      {isSocio && <td className="px-4 py-2.5 text-right tabular-nums text-[#065F46] hidden md:table-cell">{formatarMoeda(v.lucroLimpo)}</td>}
-                    </tr>
-                  </Link>
-                ))}
+              <tbody className="divide-y divide-[#F4F4F5] dark:divide-[#27272A]">
+                {vendas.map((v) => {
+                  const sb = STATUS_BADGE[v.status];
+                  return (
+                    <Link key={v.id} href={`/vendas/${v.id}`} legacyBehavior>
+                      <tr className="cursor-pointer transition-colors hover:bg-[#FAFAFA] dark:hover:bg-[#27272A]/40">
+                        <td className="px-4 py-3 font-mono text-xs text-[#A1A1AA]">#{v.numero}</td>
+                        <td className="px-4 py-3 font-medium text-[#232021] dark:text-white">{v.cliente?.nome ?? v.clienteNomeAvulso ?? "—"}</td>
+                        <td className="hidden px-4 py-3 text-[#71717A] sm:table-cell">{v.produto.nome}</td>
+                        <td className="px-4 py-3 text-right font-mono tabular-nums font-medium text-[#232021] dark:text-white">{formatarMoeda(v.valorTotal)}</td>
+                        <td className="px-4 py-3">
+                          <span className={`inline-flex items-center rounded-sm border px-2 py-0.5 text-xs font-medium ${sb.cls}`}>{sb.label}</span>
+                        </td>
+                        {isSocio && (
+                          <td className="hidden px-4 py-3 text-right font-mono tabular-nums text-[#047857] md:table-cell">{formatarMoeda(v.lucroLimpo)}</td>
+                        )}
+                      </tr>
+                    </Link>
+                  );
+                })}
               </tbody>
             </table>
           </div>
         )}
       </div>
+
+      {/* Footer */}
+      <footer className="mt-12 border-t border-[#E4E4E7] py-5 dark:border-[#27272A]">
+        <div className="flex flex-wrap items-center justify-between gap-4 text-xs text-[#A1A1AA]">
+          <span>DTF Acabamentos · Sistema interno</span>
+          <span>v1.0 · {format(new Date(), "MMM yyyy", { locale: ptBR })}</span>
+        </div>
+      </footer>
     </div>
   );
 }
 
-function KpiCard({ title, value, sub, highlight, warning, danger }: {
+function KpiCard({ title, value, sub, accent, warning, danger }: {
   title: string; value: string; sub?: string;
-  highlight?: boolean; warning?: boolean; danger?: boolean;
+  accent?: boolean; warning?: boolean; danger?: boolean;
 }) {
+  const valueColor = accent
+    ? "text-[#047857]"
+    : warning
+    ? "text-[#B45309]"
+    : danger
+    ? "text-[#B91C1C]"
+    : "text-[#232021] dark:text-white";
+
   return (
-    <Card>
-      <CardHeader className="pb-1 pt-4 px-4">
-        <CardTitle className="text-xs font-medium text-zinc-500 uppercase tracking-wide">{title}</CardTitle>
-      </CardHeader>
-      <CardContent className="px-4 pb-4">
-        <p className={`text-2xl font-bold tabular-nums ${highlight ? "text-[#065F46]" : warning ? "text-[#D97706]" : danger ? "text-[#DC2626]" : "text-zinc-900"}`}>
-          {value}
-        </p>
-        {sub && <p className="text-xs text-zinc-400 mt-0.5">{sub}</p>}
-      </CardContent>
-    </Card>
+    <div className="relative overflow-hidden rounded-md border border-[#E4E4E7] bg-white p-5 dark:border-[#27272A] dark:bg-[#18181B]">
+      <span className="absolute bottom-4 left-0 top-4 w-[3px] bg-[#232021] dark:bg-white" />
+      <p className="text-xs font-medium uppercase tracking-wider text-[#71717A]">{title}</p>
+      <p className={`mt-2 font-mono text-2xl font-semibold tabular-nums ${valueColor}`}>{value}</p>
+      {sub && <p className="mt-1 text-xs text-[#A1A1AA]">{sub}</p>}
+    </div>
   );
 }

@@ -1,9 +1,6 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   calcularPrecoPorPeca, calcularPrecoPorMetro, calcularAnatomiaVenda,
   arredondarMetragem, sugerirEmpacotamento, statusMargem,
@@ -15,13 +12,16 @@ import type { Configuracao, Produto, Cliente } from "@prisma/client";
 import { useToast } from "@/hooks/use-toast";
 
 const FORMAS = [
-  { value: FormaPagamento.PIX, label: "PIX" },
+  { value: FormaPagamento.PIX,      label: "PIX" },
   { value: FormaPagamento.DINHEIRO, label: "Dinheiro" },
-  { value: FormaPagamento.BOLETO, label: "Boleto" },
+  { value: FormaPagamento.BOLETO,   label: "Boleto" },
   { value: FormaPagamento.CARTAO_1X, label: "Cartão 1x" },
   { value: FormaPagamento.CARTAO_2X, label: "Cartão 2x" },
   { value: FormaPagamento.CARTAO_3X, label: "Cartão 3x" },
 ];
+
+const fieldCls = "h-10 w-full rounded-md border border-[#E4E4E7] bg-white px-3 text-sm text-[#232021] placeholder:text-[#A1A1AA] focus:outline-none focus:ring-1 focus:ring-[#232021] focus:border-[#232021] dark:border-[#27272A] dark:bg-[#18181B] dark:text-white";
+const labelCls = "mb-1 block text-xs font-medium text-[#71717A]";
 
 interface Props {
   config: Configuracao | null;
@@ -34,34 +34,34 @@ export function OrcamentoClient({ config, produtos, clientes, isSocio }: Props) 
   const { toast } = useToast();
   const [pending, startTransition] = useTransition();
 
-  const [produtoId, setProdutoId] = useState(produtos[0]?.id ?? "");
+  const [produtoId, setProdutoId]       = useState(produtos[0]?.id ?? "");
   const [comEmbalagem, setComEmbalagem] = useState(true);
-  const [metros, setMetros] = useState("10");
-  const [desconto, setDesconto] = useState("0");
-  const [forma, setForma] = useState<FormaPagamento>(FormaPagamento.PIX);
-  const [clienteId, setClienteId] = useState("");
+  const [metros, setMetros]             = useState("10");
+  const [desconto, setDesconto]         = useState("0");
+  const [forma, setForma]               = useState<FormaPagamento>(FormaPagamento.PIX);
+  const [clienteId, setClienteId]       = useState("");
   const [clienteAvulso, setClienteAvulso] = useState("");
-  const [observacao, setObservacao] = useState("");
-  const [copiado, setCopiado] = useState(false);
+  const [observacao, setObservacao]     = useState("");
+  const [copiado, setCopiado]           = useState(false);
 
-  const produto = produtos.find((p) => p.id === produtoId);
-  const clienteSel = clientes.find((c) => c.id === clienteId);
+  const produto     = produtos.find((p) => p.id === produtoId);
+  const clienteSel  = clientes.find((c) => c.id === clienteId);
   const nomeCliente = clienteSel?.nome || clienteAvulso || "Cliente";
 
-  const c = config;
-  const pLucro = c?.percentLucro ?? 0.4;
-  const pComissao = c?.percentComissao ?? 0.06;
-  const pImposto = c?.percentImposto ?? 0.08;
-  const embPorPeca = comEmbalagem ? ((c?.custoEmbalagem ?? 10) / (c?.pecasPorCaixa ?? 20)) : 0;
+  const c           = config;
+  const pLucro      = c?.percentLucro ?? 0.4;
+  const pComissao   = c?.percentComissao ?? 0.06;
+  const pImposto    = c?.percentImposto ?? 0.08;
+  const embPorPeca  = comEmbalagem ? ((c?.custoEmbalagem ?? 10) / (c?.pecasPorCaixa ?? 20)) : 0;
   const descontoMaxLivre = c?.descontoMaximoLivre ?? 0.05;
-  const freteGratisCx = c?.freteGratisAcimaCx ?? 5;
+  const freteGratisCx    = c?.freteGratisAcimaCx ?? 5;
 
-  const nMetros = arredondarMetragem(Number(metros) || 0);
+  const nMetros  = arredondarMetragem(Number(metros) || 0);
   const nDesconto = Number(desconto) / 100;
-  const pecas = nMetros * 4;
-  const empack = sugerirEmpacotamento(pecas, c?.pecasPorCaixa ?? 20);
+  const pecas    = nMetros * 4;
+  const empack   = sugerirEmpacotamento(pecas, c?.pecasPorCaixa ?? 20);
 
-  const pvPeca = produto
+  const pvPeca  = produto
     ? calcularPrecoPorPeca(produto.custoUnitario, embPorPeca, pLucro, pComissao, pImposto)
     : 0;
   const pvMetro = calcularPrecoPorMetro(pvPeca);
@@ -74,15 +74,12 @@ export function OrcamentoClient({ config, produtos, clientes, isSocio }: Props) 
       })
     : null;
 
-  const sm = anatomia ? statusMargem(anatomia.margemReal) : null;
+  const sm          = anatomia ? statusMargem(anatomia.margemReal) : null;
   const descontoAlto = nDesconto > descontoMaxLivre;
-  const margemBaixa = anatomia && anatomia.margemReal < 0.25 && anatomia.margemReal >= 0;
-  const prejuizo = anatomia && anatomia.margemReal < 0;
-  const freteGratis = empack.caixas >= freteGratisCx;
-
-  const nomeProduto = produto
-    ? `${produto.nome}${comEmbalagem ? " c/ embalagem" : " s/ embalagem"}`
-    : "";
+  const margemBaixa  = anatomia && anatomia.margemReal < 0.25 && anatomia.margemReal >= 0;
+  const prejuizo     = anatomia && anatomia.margemReal < 0;
+  const freteGratis  = empack.caixas >= freteGratisCx;
+  const nomeProduto  = produto ? `${produto.nome}${comEmbalagem ? " c/ embalagem" : " s/ embalagem"}` : "";
 
   const textoWhatsApp = `*Orçamento DTF Acabamentos*
 Cliente: ${nomeCliente}
@@ -127,52 +124,54 @@ Pagamento: ${FORMAS.find((f) => f.value === forma)?.label ?? forma}${freteGratis
 
   return (
     <div className="space-y-5">
-      {/* Inputs */}
-      <Card>
-        <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">Dados do Orçamento</CardTitle></CardHeader>
-        <CardContent className="space-y-4">
+
+      {/* Formulário */}
+      <div className="rounded-md border border-[#E4E4E7] bg-white dark:border-[#27272A] dark:bg-[#18181B]">
+        <div className="border-b border-[#E4E4E7] px-5 py-4 dark:border-[#27272A]">
+          <p className="text-sm font-semibold text-[#232021] dark:text-white">Dados do Orçamento</p>
+        </div>
+        <div className="space-y-4 px-5 py-4">
+
           {/* Cliente */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <label className="text-xs font-medium text-zinc-600">Cliente cadastrado</label>
-              <select
-                value={clienteId}
-                onChange={(e) => setClienteId(e.target.value)}
-                className="w-full h-9 rounded-md border border-zinc-200 px-3 text-sm bg-white"
-              >
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div>
+              <label className={labelCls}>Cliente cadastrado</label>
+              <select value={clienteId} onChange={(e) => setClienteId(e.target.value)} className={fieldCls}>
                 <option value="">— Sem cadastro —</option>
                 {clientes.map((cl) => <option key={cl.id} value={cl.id}>{cl.nome}</option>)}
               </select>
             </div>
             {!clienteId && (
-              <div className="space-y-1">
-                <label className="text-xs font-medium text-zinc-600">Nome avulso</label>
-                <Input placeholder="Nome do cliente" value={clienteAvulso} onChange={(e) => setClienteAvulso(e.target.value)} />
+              <div>
+                <label className={labelCls}>Nome avulso</label>
+                <input
+                  type="text" placeholder="Nome do cliente"
+                  value={clienteAvulso} onChange={(e) => setClienteAvulso(e.target.value)}
+                  className={fieldCls}
+                />
               </div>
             )}
           </div>
 
-          {/* Produto */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <label className="text-xs font-medium text-zinc-600">Produto</label>
-              <select
-                value={produtoId}
-                onChange={(e) => setProdutoId(e.target.value)}
-                className="w-full h-9 rounded-md border border-zinc-200 px-3 text-sm bg-white"
-              >
+          {/* Produto + Embalagem */}
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div>
+              <label className={labelCls}>Produto</label>
+              <select value={produtoId} onChange={(e) => setProdutoId(e.target.value)} className={fieldCls}>
                 {produtos.map((p) => <option key={p.id} value={p.id}>{p.nome}</option>)}
               </select>
             </div>
-            <div className="space-y-1">
-              <label className="text-xs font-medium text-zinc-600">Embalagem</label>
-              <div className="flex gap-2 h-9 items-center">
-                {[true, false].map((v) => (
+            <div>
+              <label className={labelCls}>Embalagem</label>
+              <div className="flex gap-2">
+                {([true, false] as const).map((v) => (
                   <button
-                    key={String(v)}
-                    type="button"
-                    onClick={() => setComEmbalagem(v)}
-                    className={`flex-1 h-9 rounded-md border text-sm font-medium transition-colors ${comEmbalagem === v ? "border-zinc-900 bg-zinc-900 text-white" : "border-zinc-200 text-zinc-600 hover:border-zinc-400"}`}
+                    key={String(v)} type="button" onClick={() => setComEmbalagem(v)}
+                    className={`flex-1 h-10 rounded-md border text-sm font-medium transition-colors active:scale-[0.98] ${
+                      comEmbalagem === v
+                        ? "border-[#232021] bg-[#232021] text-white dark:border-white dark:bg-white dark:text-[#232021]"
+                        : "border-[#E4E4E7] text-[#52525B] hover:border-[#A1A1AA] dark:border-[#27272A] dark:text-[#A1A1AA]"
+                    }`}
                   >
                     {v ? "Com caixa" : "Sem caixa"}
                   </button>
@@ -181,164 +180,191 @@ Pagamento: ${FORMAS.find((f) => f.value === forma)?.label ?? forma}${freteGratis
             </div>
           </div>
 
-          {/* Metragem e desconto */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className="space-y-1 col-span-2 sm:col-span-1">
-              <label className="text-xs font-medium text-zinc-600">Metragem (m)</label>
+          {/* Metragem + Desconto + Forma */}
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div className="col-span-2 sm:col-span-1">
+              <label className={labelCls}>Metragem (m)</label>
               <div className="flex gap-1">
-                <Input
+                <input
                   type="number" step="0.25" min="0.25" value={metros}
                   onChange={(e) => setMetros(e.target.value)}
-                  className="tabular-nums"
+                  className={`${fieldCls} tabular-nums`}
                 />
                 {Number(metros) !== nMetros && (
-                  <Button type="button" onClick={() => setMetros(String(nMetros))} className="shrink-0 text-xs px-2 h-9">
+                  <button
+                    type="button" onClick={() => setMetros(String(nMetros))}
+                    className="shrink-0 h-10 rounded-md border border-[#E4E4E7] bg-white px-2 text-xs text-[#232021] hover:bg-[#F4F4F5] dark:border-[#27272A] dark:bg-[#18181B] dark:text-white"
+                  >
                     ↑{nMetros}m
-                  </Button>
+                  </button>
                 )}
               </div>
             </div>
-            <div className="space-y-1">
-              <label className="text-xs font-medium text-zinc-600">Desconto (%)</label>
-              <Input
+            <div>
+              <label className={labelCls}>Desconto (%)</label>
+              <input
                 type="number" step="0.5" min="0" max="100" value={desconto}
                 onChange={(e) => setDesconto(e.target.value)}
-                className={`tabular-nums ${descontoAlto ? "border-yellow-400" : ""}`}
+                className={`${fieldCls} tabular-nums ${descontoAlto ? "border-[#FCD34D] focus:ring-[#B45309]" : ""}`}
               />
             </div>
-            <div className="space-y-1 col-span-2 sm:col-span-2">
-              <label className="text-xs font-medium text-zinc-600">Forma de pagamento</label>
-              <select
-                value={forma}
-                onChange={(e) => setForma(e.target.value as FormaPagamento)}
-                className="w-full h-9 rounded-md border border-zinc-200 px-3 text-sm bg-white"
-              >
+            <div className="col-span-2">
+              <label className={labelCls}>Forma de pagamento</label>
+              <select value={forma} onChange={(e) => setForma(e.target.value as FormaPagamento)} className={fieldCls}>
                 {FORMAS.map((f) => <option key={f.value} value={f.value}>{f.label}</option>)}
               </select>
             </div>
           </div>
 
           {/* Observação */}
-          <div className="space-y-1">
-            <label className="text-xs font-medium text-zinc-600">Observação (opcional)</label>
-            <Input placeholder="Ex: Entregar na obra da Rua X" value={observacao} onChange={(e) => setObservacao(e.target.value)} />
+          <div>
+            <label className={labelCls}>Observação (opcional)</label>
+            <input
+              type="text" placeholder="Ex: Entregar na obra da Rua X"
+              value={observacao} onChange={(e) => setObservacao(e.target.value)}
+              className={fieldCls}
+            />
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Alertas */}
       {descontoAlto && !isSocio && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-md px-4 py-2.5 text-sm text-yellow-800">
-          ⚠️ Desconto acima de {formatarPercent(descontoMaxLivre)} — precisa autorização do sócio
+        <div className="rounded-md border border-[#FDE68A] bg-[#FFFBEB] px-4 py-3 text-sm text-[#B45309]">
+          Desconto acima de {formatarPercent(descontoMaxLivre)} — precisa autorização do sócio
         </div>
       )}
       {margemBaixa && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-md px-4 py-2.5 text-sm text-yellow-800">
-          ⚠️ Margem baixa ({formatarPercent(anatomia!.margemReal)}) — verifique antes de confirmar
+        <div className="rounded-md border border-[#FDE68A] bg-[#FFFBEB] px-4 py-3 text-sm text-[#B45309]">
+          Margem baixa ({formatarPercent(anatomia!.margemReal)}) — verifique antes de confirmar
         </div>
       )}
       {prejuizo && (
-        <div className="bg-red-50 border border-red-200 rounded-md px-4 py-2.5 text-sm text-red-800">
-          ❌ Venda em prejuízo — não é possível salvar
+        <div className="rounded-md border border-[#FECACA] bg-[#FEF2F2] px-4 py-3 text-sm text-[#B91C1C]">
+          Venda em prejuízo — não é possível salvar
         </div>
       )}
 
       {/* Resultado */}
       {anatomia && produto && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+
           {/* Resumo */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-semibold flex items-center justify-between">
-                Resumo
-                {sm && <span className="text-xs font-normal" style={{ color: sm.cor }}>{sm.emoji} {sm.label}</span>}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2 text-sm">
-              <Row label="Metragem" value={`${nMetros} m`} />
-              <Row label="Peças" value={`${pecas} peças`} />
-              <Row label="Caixas + avulsas" value={`${empack.caixas} cx + ${empack.avulsas} avulsas`} />
-              {freteGratis && <Row label="Frete" value="✅ Grátis" />}
-              <div className="border-t border-zinc-100 pt-2 mt-2">
-                <Row label="Preço/metro" value={formatarMoeda(pvMetro)} />
-                {nDesconto > 0 && <Row label={`Desconto (${formatarPercent(nDesconto)})`} value={`-${formatarMoeda(anatomia.desconto)}`} />}
-                <Row label="TOTAL" value={formatarMoeda(anatomia.valorVenda)} bold />
+          <div className="rounded-md border border-[#E4E4E7] bg-white dark:border-[#27272A] dark:bg-[#18181B]">
+            <div className="border-b border-[#E4E4E7] px-5 py-4 dark:border-[#27272A]">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-semibold text-[#232021] dark:text-white">Resumo</p>
+                {sm && <span className="text-xs font-medium" style={{ color: sm.cor }}>{sm.emoji} {sm.label}</span>}
+              </div>
+            </div>
+            <div className="space-y-3 px-5 py-4 text-sm">
+              <ORow label="Metragem" value={`${nMetros} m`} />
+              <ORow label="Peças" value={`${pecas} peças`} />
+              <ORow label="Caixas + avulsas" value={`${empack.caixas} cx + ${empack.avulsas} avulsas`} />
+              {freteGratis && <ORow label="Frete" value="Grátis" accent />}
+              <div className="border-t border-[#E4E4E7] pt-3 dark:border-[#27272A]">
+                <ORow label="Preço/metro" value={formatarMoeda(pvMetro)} mono />
+                {nDesconto > 0 && <ORow label={`Desconto (${formatarPercent(nDesconto)})`} value={`-${formatarMoeda(anatomia.desconto)}`} mono />}
+                <div className="mt-3">
+                  <ORow label="TOTAL" value={formatarMoeda(anatomia.valorVenda)} mono bold />
+                </div>
               </div>
               {!isSocio && (
-                <Row label="Sua comissão" value={formatarMoeda(anatomia.custoComissao)} highlight />
+                <div className="border-t border-[#E4E4E7] pt-3 dark:border-[#27272A]">
+                  <ORow label="Sua comissão" value={formatarMoeda(anatomia.custoComissao)} mono accent />
+                </div>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
-          {/* Anatomia (só sócio) */}
+          {/* Anatomia — só sócio */}
           {isSocio && (
-            <Card>
-              <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">Anatomia financeira</CardTitle></CardHeader>
-              <CardContent className="space-y-2 text-sm">
-                <Row label="Faturamento bruto" value={formatarMoeda(anatomia.faturamentoBruto)} />
-                <Row label="Desconto" value={`-${formatarMoeda(anatomia.desconto)}`} />
-                <div className="border-t border-zinc-100 pt-2 mt-1 space-y-1.5">
-                  <Row label="Custo produto" value={`-${formatarMoeda(anatomia.custoProduto)}`} />
-                  <Row label="Custo embalagem" value={`-${formatarMoeda(anatomia.custoEmbalagem)}`} />
-                  <Row label="Imposto" value={`-${formatarMoeda(anatomia.custoImposto)}`} />
-                  <Row label="Comissão" value={`-${formatarMoeda(anatomia.custoComissao)}`} />
+            <div className="rounded-md border border-[#E4E4E7] bg-white dark:border-[#27272A] dark:bg-[#18181B]">
+              <div className="border-b border-[#E4E4E7] px-5 py-4 dark:border-[#27272A]">
+                <p className="text-sm font-semibold text-[#232021] dark:text-white">Anatomia financeira</p>
+              </div>
+              <div className="space-y-3 px-5 py-4 text-sm">
+                <ORow label="Faturamento bruto" value={formatarMoeda(anatomia.faturamentoBruto)} mono />
+                <ORow label="Desconto" value={`-${formatarMoeda(anatomia.desconto)}`} mono />
+                <div className="border-t border-[#E4E4E7] pt-3 space-y-3 dark:border-[#27272A]">
+                  <ORow label="Custo produto" value={`-${formatarMoeda(anatomia.custoProduto)}`} mono />
+                  <ORow label="Custo embalagem" value={`-${formatarMoeda(anatomia.custoEmbalagem)}`} mono />
+                  <ORow label="Imposto" value={`-${formatarMoeda(anatomia.custoImposto)}`} mono />
+                  <ORow label="Comissão" value={`-${formatarMoeda(anatomia.custoComissao)}`} mono />
                 </div>
-                <div className="border-t border-zinc-100 pt-2 mt-1">
-                  <Row label="💰 Lucro líquido" value={formatarMoeda(anatomia.lucroLimpo)} highlight />
-                  <Row label="Margem real" value={formatarPercent(anatomia.margemReal)} />
+                <div className="border-t border-[#E4E4E7] pt-3 dark:border-[#27272A]">
+                  <ORow label="Lucro líquido" value={formatarMoeda(anatomia.lucroLimpo)} mono accent />
+                  <div className="mt-3">
+                    <ORow label="Margem real" value={formatarPercent(anatomia.margemReal)} />
+                  </div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           )}
         </div>
       )}
 
       {/* Texto WhatsApp */}
       {anatomia && (
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-semibold flex items-center justify-between">
-              Texto para WhatsApp
-              <Button type="button" onClick={copiarTexto} className="h-7 text-xs px-3">
-                {copiado ? "✅ Copiado!" : "Copiar"}
-              </Button>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <pre className="text-sm text-zinc-700 whitespace-pre-wrap font-mono bg-zinc-50 rounded-md p-3 border border-zinc-200 leading-relaxed">
+        <div className="rounded-md border border-[#E4E4E7] bg-white dark:border-[#27272A] dark:bg-[#18181B]">
+          <div className="flex items-center justify-between border-b border-[#E4E4E7] px-5 py-4 dark:border-[#27272A]">
+            <p className="text-sm font-semibold text-[#232021] dark:text-white">Texto para WhatsApp</p>
+            <button
+              type="button" onClick={copiarTexto}
+              className="h-8 rounded-md border border-[#E4E4E7] bg-white px-3 text-xs font-medium text-[#232021] transition-colors hover:bg-[#F4F4F5] dark:border-[#27272A] dark:bg-[#18181B] dark:text-white dark:hover:bg-[#27272A]"
+            >
+              {copiado ? "Copiado!" : "Copiar"}
+            </button>
+          </div>
+          <div className="px-5 py-4">
+            <pre className="whitespace-pre-wrap font-mono text-sm leading-relaxed text-[#232021] dark:text-[#FAFAFA]">
               {textoWhatsApp}
             </pre>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
       {/* Ações */}
       {anatomia && !prejuizo && (
-        <div className="flex gap-3 flex-wrap">
-          <Button
+        <div className="flex flex-wrap gap-3">
+          <button
+            type="button"
             onClick={() => salvar(StatusVenda.ORCAMENTO)}
             disabled={pending || (descontoAlto && !isSocio)}
-            className="bg-zinc-100 text-zinc-900 hover:bg-zinc-200"
+            className="h-10 rounded-md border border-[#E4E4E7] bg-white px-4 text-sm font-medium text-[#232021] transition-colors hover:bg-[#F4F4F5] active:scale-[0.98] disabled:opacity-40 dark:border-[#27272A] dark:bg-[#18181B] dark:text-white dark:hover:bg-[#27272A]"
           >
             {pending ? "Salvando..." : "Salvar como Orçamento"}
-          </Button>
-          <Button
+          </button>
+          <button
+            type="button"
             onClick={() => salvar(StatusVenda.CONFIRMADO)}
             disabled={pending || (descontoAlto && !isSocio)}
+            className="h-10 rounded-md bg-[#232021] px-4 text-sm font-medium text-white transition-colors hover:bg-[#3F3F46] active:scale-[0.98] disabled:opacity-40 dark:bg-white dark:text-[#232021] dark:hover:bg-[#F4F4F5]"
           >
             {pending ? "Salvando..." : "Salvar como Confirmado"}
-          </Button>
+          </button>
         </div>
       )}
     </div>
   );
 }
 
-function Row({ label, value, bold, highlight }: { label: string; value: string; bold?: boolean; highlight?: boolean }) {
+function ORow({
+  label, value, mono, bold, accent,
+}: {
+  label: string; value: string;
+  mono?: boolean; bold?: boolean; accent?: boolean;
+}) {
   return (
-    <div className="flex justify-between items-center">
-      <span className="text-zinc-500">{label}</span>
-      <span className={`tabular-nums ${bold ? "font-bold text-base" : ""} ${highlight ? "font-semibold text-[#065F46]" : ""}`}>{value}</span>
+    <div className="flex items-center justify-between gap-4">
+      <span className="text-[#71717A]">{label}</span>
+      <span className={[
+        mono ? "font-mono tabular-nums" : "",
+        bold ? "font-semibold text-[#232021] dark:text-white" : "text-[#52525B] dark:text-[#A1A1AA]",
+        accent ? "!text-[#047857] font-semibold" : "",
+      ].join(" ")}>
+        {value}
+      </span>
     </div>
   );
 }

@@ -2,7 +2,6 @@
 
 import * as React from "react"
 import * as TabsPrimitive from "@radix-ui/react-tabs"
-
 import { cn } from "@/lib/utils"
 
 const Tabs = TabsPrimitive.Root
@@ -14,7 +13,7 @@ const TabsList = React.forwardRef<
   <TabsPrimitive.List
     ref={ref}
     className={cn(
-      "inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground",
+      "flex border-b border-[#E4E4E7] dark:border-[#27272A]",
       className
     )}
     {...props}
@@ -29,7 +28,13 @@ const TabsTrigger = React.forwardRef<
   <TabsPrimitive.Trigger
     ref={ref}
     className={cn(
-      "inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm",
+      "relative py-3 px-1 mr-6 text-sm font-medium transition-colors duration-150",
+      "text-[#71717A] hover:text-[#3F3F46] dark:text-[#71717A] dark:hover:text-[#A1A1AA]",
+      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#232021] focus-visible:ring-offset-2",
+      "disabled:pointer-events-none disabled:opacity-40",
+      "data-[state=active]:text-[#232021] dark:data-[state=active]:text-white",
+      "after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:rounded-full",
+      "after:bg-transparent data-[state=active]:after:bg-[#232021] dark:data-[state=active]:after:bg-white",
       className
     )}
     {...props}
@@ -44,7 +49,7 @@ const TabsContent = React.forwardRef<
   <TabsPrimitive.Content
     ref={ref}
     className={cn(
-      "mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+      "mt-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#232021] focus-visible:ring-offset-2",
       className
     )}
     {...props}

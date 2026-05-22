@@ -6,12 +6,12 @@ import { Role } from "@prisma/client";
 import { Settings, Package, Calculator, BookOpen, LogOut, User, BarChart2 } from "lucide-react";
 
 const links = [
-  { href: "/analise", label: "Análise", icon: BarChart2, roles: ["SOCIO", "VENDEDOR"] },
-  { href: "/clientes", label: "Clientes", icon: User, roles: ["SOCIO", "VENDEDOR"] },
+  { href: "/analise",          label: "Análise",              icon: BarChart2, roles: ["SOCIO", "VENDEDOR"] },
+  { href: "/clientes",         label: "Clientes",             icon: User,      roles: ["SOCIO", "VENDEDOR"] },
   { href: "/calculadora-preco", label: "Calculadora de Preço", icon: Calculator, roles: ["SOCIO"] },
-  { href: "/produtos", label: "Produtos", icon: Package, roles: ["SOCIO"] },
-  { href: "/configuracoes", label: "Configurações", icon: Settings, roles: ["SOCIO"] },
-  { href: "/guia", label: "Guia de Uso", icon: BookOpen, roles: ["SOCIO", "VENDEDOR"] },
+  { href: "/produtos",         label: "Produtos",             icon: Package,   roles: ["SOCIO"] },
+  { href: "/configuracoes",    label: "Configurações",        icon: Settings,  roles: ["SOCIO"] },
+  { href: "/guia",             label: "Guia de Uso",          icon: BookOpen,  roles: ["SOCIO", "VENDEDOR"] },
 ];
 
 export default function MaisPage() {
@@ -19,33 +19,35 @@ export default function MaisPage() {
   const role = session?.user?.role ?? "VENDEDOR";
 
   return (
-    <div className="p-6 space-y-5">
-      <div>
-        <p className="font-semibold text-zinc-900">{session?.user?.name}</p>
-        <p className="text-sm text-zinc-500">{role === Role.SOCIO ? "Sócio" : "Vendedor"} · {session?.user?.email}</p>
+    <div className="px-4 py-6">
+      <div className="mb-6">
+        <p className="font-semibold text-[#232021] dark:text-white">{session?.user?.name}</p>
+        <p className="text-sm text-[#71717A]">
+          {role === Role.SOCIO ? "Sócio" : "Vendedor"} · {session?.user?.email}
+        </p>
       </div>
 
-      <div className="space-y-1">
+      <div className="space-y-0.5">
         {links
           .filter((l) => l.roles.includes(role))
           .map(({ href, label, icon: Icon }) => (
             <Link
               key={href}
               href={href}
-              className="flex items-center gap-3 px-3 py-3 rounded-md text-sm text-zinc-700 hover:bg-zinc-100 transition-colors"
+              className="flex items-center gap-3 rounded-md px-3 py-3 text-sm text-[#52525B] transition-colors hover:bg-[#F4F4F5] hover:text-[#232021] dark:text-[#71717A] dark:hover:bg-[#27272A] dark:hover:text-white"
             >
-              <Icon className="w-4 h-4 text-zinc-500" />
+              <Icon className="h-4 w-4 shrink-0" strokeWidth={1.5} />
               {label}
             </Link>
           ))}
       </div>
 
-      <div className="border-t border-zinc-200 pt-4">
+      <div className="mt-6 border-t border-[#E4E4E7] pt-4 dark:border-[#27272A]">
         <button
           onClick={() => signOut({ callbackUrl: "/login" })}
-          className="flex items-center gap-3 px-3 py-3 rounded-md text-sm text-red-600 hover:bg-red-50 transition-colors w-full"
+          className="flex w-full items-center gap-3 rounded-md px-3 py-3 text-sm text-[#B91C1C] transition-colors hover:bg-[#FEF2F2]"
         >
-          <LogOut className="w-4 h-4" />
+          <LogOut className="h-4 w-4" strokeWidth={1.5} />
           Sair
         </button>
       </div>

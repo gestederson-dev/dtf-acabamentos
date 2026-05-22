@@ -16,10 +16,10 @@ export function ToggleAtivo({ produtoId, ativo }: { produtoId: string; ativo: bo
         await toggleProdutoAtivo(produtoId, !ativo);
         toast({ title: ativo ? "Produto desativado" : "Produto ativado" });
       })}
-      className={`shrink-0 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+      className={`shrink-0 rounded-sm border px-3 py-1.5 text-xs font-medium transition-colors active:scale-[0.98] disabled:opacity-40 ${
         ativo
-          ? "bg-green-50 text-[#065F46] hover:bg-green-100"
-          : "bg-zinc-100 text-zinc-500 hover:bg-zinc-200"
+          ? "border-[#A7F3D0] bg-[#ECFDF5] text-[#047857] hover:bg-[#D1FAE5]"
+          : "border-[#E4E4E7] bg-[#F4F4F5] text-[#71717A] hover:bg-[#E4E4E7] dark:border-[#27272A] dark:bg-[#27272A] dark:text-[#A1A1AA]"
       }`}
     >
       {ativo ? "Ativo" : "Inativo"}

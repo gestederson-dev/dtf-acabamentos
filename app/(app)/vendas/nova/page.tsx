@@ -15,10 +15,10 @@ export default async function NovaVendaPage() {
   ]);
 
   return (
-    <div className="p-6 max-w-3xl space-y-6">
-      <div>
-        <h1 className="text-xl font-bold text-zinc-900">Nova Venda</h1>
-        <p className="text-sm text-zinc-500">Registre uma venda ou orçamento</p>
+    <div className="mx-auto max-w-3xl px-4 py-6 lg:px-8 lg:py-10">
+      <div className="mb-8">
+        <h1 className="text-xl font-semibold tracking-tight text-[#232021] dark:text-white">Nova Venda</h1>
+        <p className="mt-0.5 text-sm text-[#71717A]">Registre uma venda ou orçamento</p>
       </div>
       <NovaVendaClient config={config} produtos={produtos} clientes={clientes} isSocio={isSocio} />
     </div>

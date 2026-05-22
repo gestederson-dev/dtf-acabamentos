@@ -19,11 +19,11 @@ function TooltipCustom({ active, payload, label }: { active?: boolean; payload?:
   if (!active || !payload?.length) return null;
   const d = payload[0];
   return (
-    <div className="bg-white border border-zinc-200 rounded-lg p-3 shadow-sm text-sm">
-      <p className="font-semibold text-zinc-700 mb-1">{label}</p>
-      <p className="text-[#065F46]">Lucro: <span className="tabular-nums font-medium">{formatarMoeda(d.value)}</span></p>
+    <div className="rounded-md border border-[#E4E4E7] bg-white p-3 text-sm shadow-sm">
+      <p className="mb-1 font-semibold text-[#232021]">{label}</p>
+      <p className="text-[#047857]">Lucro: <span className="tabular-nums font-medium">{formatarMoeda(d.value)}</span></p>
       {payload[1] && (
-        <p className="text-zinc-500">Fat: <span className="tabular-nums">{formatarMoeda(payload[1].value)}</span></p>
+        <p className="text-[#71717A]">Fat: <span className="tabular-nums">{formatarMoeda(payload[1].value)}</span></p>
       )}
     </div>
   );
@@ -31,7 +31,7 @@ function TooltipCustom({ active, payload, label }: { active?: boolean; payload?:
 
 export function GraficoLucroMensal({ dados }: Props) {
   if (dados.length === 0) return (
-    <div className="flex items-center justify-center h-48 text-zinc-400 text-sm">Sem dados para exibir</div>
+    <div className="flex items-center justify-center h-48 text-[#A1A1AA] text-sm">Sem dados para exibir</div>
   );
 
   return (
@@ -49,7 +49,7 @@ export function GraficoLucroMensal({ dados }: Props) {
           {dados.map((entry, i) => (
             <Cell
               key={i}
-              fill={entry.margem >= 0.35 ? "#065F46" : entry.margem >= 0.25 ? "#D97706" : "#DC2626"}
+              fill={entry.margem >= 0.35 ? "#047857" : entry.margem >= 0.25 ? "#D97706" : "#DC2626"}
             />
           ))}
         </Bar>

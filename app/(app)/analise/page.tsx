@@ -20,10 +20,10 @@ export default async function AnalisePage() {
   ]);
 
   return (
-    <div className="p-6 space-y-5">
-      <div>
-        <h1 className="text-xl font-bold text-zinc-900">Análise</h1>
-        <p className="text-sm text-zinc-500">Visão aprofundada do negócio</p>
+    <div className="mx-auto max-w-7xl px-4 py-6 lg:px-8 lg:py-10">
+      <div className="mb-8">
+        <h1 className="text-xl font-semibold tracking-tight text-[#232021] dark:text-white">Análise</h1>
+        <p className="mt-0.5 text-sm text-[#71717A]">Visão aprofundada do negócio</p>
       </div>
       <AnaliseClient
         sazonalidade={sazonalidade}

@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import {
   calcularPrecoPorPeca, calcularPrecoPorMetro, calcularAnatomiaVenda,
   statusMargem, formatarMoeda, formatarPercent,
 } from "@/lib/pricing";
 import type { Configuracao, Produto } from "@prisma/client";
+
+const fieldCls = "h-10 w-full rounded-md border border-[#E4E4E7] bg-white px-3 text-sm tabular-nums text-[#232021] focus:outline-none focus:ring-1 focus:ring-[#232021] focus:border-[#232021] dark:border-[#27272A] dark:bg-[#18181B] dark:text-white";
+const labelCls = "mb-1 block text-xs font-medium text-[#71717A]";
 
 interface Props {
   config: Configuracao | null;
@@ -15,26 +16,22 @@ interface Props {
 }
 
 export function CalculadoraClient({ config, produtos }: Props) {
-  const [custo21, setCusto21] = useState(
-    String(produtos.find((p) => p.larguraCm === 21)?.custoUnitario ?? 8)
-  );
-  const [custo19, setCusto19] = useState(
-    String(produtos.find((p) => p.larguraCm === 19)?.custoUnitario ?? 7.24)
-  );
+  const [custo21, setCusto21]   = useState(String(produtos.find((p) => p.larguraCm === 21)?.custoUnitario ?? 8));
+  const [custo19, setCusto19]   = useState(String(produtos.find((p) => p.larguraCm === 19)?.custoUnitario ?? 7.24));
   const [custoEmb, setCustoEmb] = useState(String(config?.custoEmbalagem ?? 10));
-  const [pecasCx, setPecasCx] = useState(String(config?.pecasPorCaixa ?? 20));
-  const [lucro, setLucro] = useState(String(Math.round((config?.percentLucro ?? 0.4) * 100)));
+  const [pecasCx, setPecasCx]   = useState(String(config?.pecasPorCaixa ?? 20));
+  const [lucro, setLucro]       = useState(String(Math.round((config?.percentLucro ?? 0.4) * 100)));
   const [comissao, setComissao] = useState(String(Math.round((config?.percentComissao ?? 0.06) * 100)));
-  const [imposto, setImposto] = useState(String(Math.round((config?.percentImposto ?? 0.08) * 100)));
+  const [imposto, setImposto]   = useState(String(Math.round((config?.percentImposto ?? 0.08) * 100)));
 
-  const pLucro = Number(lucro) / 100;
+  const pLucro    = Number(lucro) / 100;
   const pComissao = Number(comissao) / 100;
-  const pImposto = Number(imposto) / 100;
-  const nPecasCx = Number(pecasCx) || 20;
+  const pImposto  = Number(imposto) / 100;
+  const nPecasCx  = Number(pecasCx) || 20;
   const nCustoEmb = Number(custoEmb) || 0;
   const embPorPeca = nCustoEmb / nPecasCx;
 
-  const totalPct = pLucro + pComissao + pImposto;
+  const totalPct    = pLucro + pComissao + pImposto;
   const divisorValido = totalPct < 1;
 
   function calcPVs(custo: number) {
@@ -54,137 +51,132 @@ export function CalculadoraClient({ config, produtos }: Props) {
   const pv21 = calcPVs(Number(custo21));
   const pv19 = calcPVs(Number(custo19));
 
-  // Anatomia da 21 com embalagem
   const anatomia21 = pv21 ? calcularAnatomiaVenda({
-    metros: 1,
-    precoPorMetro: pv21.pvmComEmb,
-    descontoPercent: 0,
-    custoUnitario: Number(custo21),
-    custoEmbalagemPeca: embPorPeca,
-    comEmbalagem: true,
-    percentImposto: pImposto,
-    percentComissao: pComissao,
+    metros: 1, precoPorMetro: pv21.pvmComEmb, descontoPercent: 0,
+    custoUnitario: Number(custo21), custoEmbalagemPeca: embPorPeca,
+    comEmbalagem: true, percentImposto: pImposto, percentComissao: pComissao,
   }) : null;
 
-  // Capacidade MEI
-  const tetoMEI = config?.tetoMEIAnual ?? 81000;
+  const tetoMEI  = config?.tetoMEIAnual ?? 81000;
   const metrosMEI = pv21 ? (tetoMEI / pv21.pvmComEmb).toFixed(0) : "—";
 
   return (
     <div className="space-y-5">
-      {/* Inputs */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-semibold">Parâmetros</CardTitle>
-        </CardHeader>
-        <CardContent className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+
+      {/* Parâmetros */}
+      <div className="rounded-md border border-[#E4E4E7] bg-white dark:border-[#27272A] dark:bg-[#18181B]">
+        <div className="border-b border-[#E4E4E7] px-5 py-4 dark:border-[#27272A]">
+          <p className="text-sm font-semibold text-[#232021] dark:text-white">Parâmetros</p>
+        </div>
+        <div className="grid grid-cols-2 gap-4 px-5 py-4 sm:grid-cols-4">
           <InputField label="Custo P21 (R$/peça)" value={custo21} onChange={setCusto21} step="0.01" />
           <InputField label="Custo P19 (R$/peça)" value={custo19} onChange={setCusto19} step="0.01" />
-          <InputField label="Custo caixa (R$)" value={custoEmb} onChange={setCustoEmb} step="0.01" />
-          <InputField label="Peças/caixa" value={pecasCx} onChange={setPecasCx} step="1" />
-          <InputField label="Lucro alvo (%)" value={lucro} onChange={setLucro} step="1" />
-          <InputField label="Comissão (%)" value={comissao} onChange={setComissao} step="1" />
-          <InputField label="Imposto (%)" value={imposto} onChange={setImposto} step="1" />
+          <InputField label="Custo caixa (R$)"    value={custoEmb} onChange={setCustoEmb} step="0.01" />
+          <InputField label="Peças/caixa"         value={pecasCx} onChange={setPecasCx} step="1" />
+          <InputField label="Lucro alvo (%)"      value={lucro}    onChange={setLucro}    step="1" />
+          <InputField label="Comissão (%)"        value={comissao} onChange={setComissao} step="1" />
+          <InputField label="Imposto (%)"         value={imposto}  onChange={setImposto}  step="1" />
           <div className="flex items-end">
-            <div className={`text-sm font-medium px-3 py-2 rounded-md w-full text-center ${!divisorValido ? "bg-red-50 text-red-700" : "bg-green-50 text-[#065F46]"}`}>
+            <div className={`flex h-10 w-full items-center justify-center rounded-md text-sm font-medium ${
+              !divisorValido
+                ? "border border-[#FECACA] bg-[#FEF2F2] text-[#B91C1C]"
+                : "border border-[#A7F3D0] bg-[#ECFDF5] text-[#047857]"
+            }`}>
               Total: {formatarPercent(totalPct)}
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {!divisorValido && (
-        <div className="bg-red-50 border border-red-200 rounded-md px-4 py-3 text-sm text-red-700">
-          ❌ Percentuais somam {formatarPercent(totalPct)} — deve ser menor que 100%
+        <div className="rounded-md border border-[#FECACA] bg-[#FEF2F2] px-4 py-3 text-sm text-[#B91C1C]">
+          Percentuais somam {formatarPercent(totalPct)} — deve ser menor que 100%
         </div>
       )}
 
       {/* Tabela de preços */}
       {divisorValido && (
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-semibold">Tabela de Preços</CardTitle>
-          </CardHeader>
-          <CardContent className="overflow-x-auto">
+        <div className="overflow-hidden rounded-md border border-[#E4E4E7] dark:border-[#27272A]">
+          <div className="border-b border-[#E4E4E7] px-5 py-4 bg-[#FAFAFA] dark:border-[#27272A] dark:bg-[#18181B]">
+            <p className="text-sm font-semibold text-[#232021] dark:text-white">Tabela de Preços</p>
+          </div>
+          <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-zinc-200">
-                  <th className="text-left py-2 px-3 font-medium text-zinc-600">Produto</th>
-                  <th className="text-right py-2 px-3 font-medium text-zinc-600 tabular-nums">R$/peça</th>
-                  <th className="text-right py-2 px-3 font-medium text-zinc-600 tabular-nums">R$/metro</th>
-                  <th className="text-right py-2 px-3 font-medium text-zinc-600 tabular-nums">R$/caixa (5m)</th>
+              <thead className="border-b border-[#E4E4E7] dark:border-[#27272A]">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#71717A]">Produto</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-[#71717A]">R$/peça</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-[#71717A]">R$/metro</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-[#71717A]">R$/caixa (5m)</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-100">
+              <tbody className="divide-y divide-[#F4F4F5] dark:divide-[#27272A]">
                 <PVRow label="Pingadeira 21 cm — c/ embalagem" pv={pv21} field="pvComEmb" pvmField="pvmComEmb" pvcxField="pvCxComEmb" />
                 <PVRow label="Pingadeira 21 cm — s/ embalagem" pv={pv21} field="pvSemEmb" pvmField="pvmSemEmb" pvcxField="pvCxSemEmb" />
                 <PVRow label="Pingadeira 19 cm — c/ embalagem" pv={pv19} field="pvComEmb" pvmField="pvmComEmb" pvcxField="pvCxComEmb" />
                 <PVRow label="Pingadeira 19 cm — s/ embalagem" pv={pv19} field="pvSemEmb" pvmField="pvmSemEmb" pvcxField="pvCxSemEmb" />
               </tbody>
             </table>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
       {/* Anatomia + MEI */}
       {divisorValido && anatomia21 && pv21 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-semibold">Anatomia — P21 c/ embalagem (por metro)</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2 text-sm">
-              <AnatRow label="Custo produto" value={anatomia21.custoProduto * 4} total={anatomia21.valorVenda} />
-              <AnatRow label="Custo embalagem" value={anatomia21.custoEmbalagem * 4} total={anatomia21.valorVenda} />
-              <AnatRow label="Imposto ({pct})" value={anatomia21.custoImposto} total={anatomia21.valorVenda} pct={pImposto} />
-              <AnatRow label="Comissão ({pct})" value={anatomia21.custoComissao} total={anatomia21.valorVenda} pct={pComissao} />
-              <div className="border-t border-zinc-200 pt-2 mt-2">
-                <AnatRow label="💰 Lucro líquido" value={anatomia21.lucroLimpo} total={anatomia21.valorVenda} highlight />
-              </div>
-              <div className="flex justify-between items-center pt-1">
-                <span className="font-semibold">Preço de venda</span>
-                <span className="font-bold tabular-nums text-base">{formatarMoeda(pv21.pvmComEmb)}</span>
-              </div>
-              <div className="mt-1">
-                {(() => { const sm = statusMargem(anatomia21.margemReal); return <span className="text-xs font-medium" style={{ color: sm.cor }}>{sm.emoji} {sm.label} ({formatarPercent(anatomia21.margemReal)})</span>; })()}
-              </div>
-            </CardContent>
-          </Card>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-semibold">Capacidade MEI</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3 text-sm">
-              <div className="flex justify-between">
-                <span className="text-zinc-500">Teto MEI anual</span>
-                <span className="tabular-nums font-medium">{formatarMoeda(tetoMEI)}</span>
+          {/* Anatomia */}
+          <div className="rounded-md border border-[#E4E4E7] bg-white dark:border-[#27272A] dark:bg-[#18181B]">
+            <div className="border-b border-[#E4E4E7] px-5 py-4 dark:border-[#27272A]">
+              <p className="text-sm font-semibold text-[#232021] dark:text-white">Anatomia — P21 c/ embalagem (por metro)</p>
+            </div>
+            <div className="space-y-3 px-5 py-4 text-sm">
+              <AnatRow label="Custo produto"    value={anatomia21.custoProduto * 4}   total={anatomia21.valorVenda} />
+              <AnatRow label="Custo embalagem"  value={anatomia21.custoEmbalagem * 4} total={anatomia21.valorVenda} />
+              <AnatRow label={`Imposto (${formatarPercent(pImposto)})`}   value={anatomia21.custoImposto}  total={anatomia21.valorVenda} />
+              <AnatRow label={`Comissão (${formatarPercent(pComissao)})`} value={anatomia21.custoComissao} total={anatomia21.valorVenda} />
+              <div className="border-t border-[#E4E4E7] pt-3 dark:border-[#27272A]">
+                <AnatRow label="Lucro líquido" value={anatomia21.lucroLimpo} total={anatomia21.valorVenda} accent />
               </div>
-              <div className="flex justify-between">
-                <span className="text-zinc-500">Metros/ano até o teto (P21 c/emb)</span>
-                <span className="tabular-nums font-medium">{metrosMEI} m</span>
+              <div className="flex justify-between pt-1">
+                <span className="font-semibold text-[#232021] dark:text-white">Preço de venda</span>
+                <span className="font-mono font-bold tabular-nums text-[#232021] dark:text-white">{formatarMoeda(pv21.pvmComEmb)}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-zinc-500">Metros/mês médio</span>
-                <span className="tabular-nums font-medium">{pv21 ? (Number(metrosMEI) / 12).toFixed(0) : "—"} m</span>
+              <div>
+                {(() => {
+                  const sm = statusMargem(anatomia21.margemReal);
+                  return <span className="text-xs font-medium" style={{ color: sm.cor }}>{sm.emoji} {sm.label} ({formatarPercent(anatomia21.margemReal)})</span>;
+                })()}
               </div>
-              <div className="flex justify-between">
-                <span className="text-zinc-500">Caixas/mês médio</span>
-                <span className="tabular-nums font-medium">{pv21 ? (Number(metrosMEI) / 12 / 5).toFixed(0) : "—"} cx</span>
-              </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
+
+          {/* MEI */}
+          <div className="rounded-md border border-[#E4E4E7] bg-white dark:border-[#27272A] dark:bg-[#18181B]">
+            <div className="border-b border-[#E4E4E7] px-5 py-4 dark:border-[#27272A]">
+              <p className="text-sm font-semibold text-[#232021] dark:text-white">Capacidade MEI</p>
+            </div>
+            <div className="space-y-3 px-5 py-4 text-sm">
+              <MeiRow label="Teto MEI anual"                   value={formatarMoeda(tetoMEI)} />
+              <MeiRow label="Metros/ano até o teto (P21 c/emb)" value={`${metrosMEI} m`} />
+              <MeiRow label="Metros/mês médio"                 value={`${pv21 ? (Number(metrosMEI) / 12).toFixed(0) : "—"} m`} />
+              <MeiRow label="Caixas/mês médio"                 value={`${pv21 ? (Number(metrosMEI) / 12 / 5).toFixed(0) : "—"} cx`} />
+            </div>
+          </div>
         </div>
       )}
     </div>
   );
 }
 
-function InputField({ label, value, onChange, step }: { label: string; value: string; onChange: (v: string) => void; step?: string }) {
+function InputField({ label, value, onChange, step }: {
+  label: string; value: string; onChange: (v: string) => void; step?: string;
+}) {
   return (
-    <div className="space-y-1">
-      <label className="text-xs font-medium text-zinc-600">{label}</label>
-      <Input type="number" step={step} min="0" value={value} onChange={(e) => onChange(e.target.value)} className="tabular-nums" />
+    <div>
+      <label className="mb-1 block text-xs font-medium text-[#71717A]">{label}</label>
+      <input type="number" step={step} min="0" value={value} onChange={(e) => onChange(e.target.value)}
+        className="h-10 w-full rounded-md border border-[#E4E4E7] bg-white px-3 text-sm tabular-nums text-[#232021] focus:outline-none focus:ring-1 focus:ring-[#232021] dark:border-[#27272A] dark:bg-[#18181B] dark:text-white" />
     </div>
   );
 }
@@ -198,26 +190,35 @@ function PVRow({ label, pv, field, pvmField, pvcxField }: {
   pvcxField: "pvCxComEmb" | "pvCxSemEmb";
 }) {
   return (
-    <tr className="hover:bg-zinc-50">
-      <td className="py-2.5 px-3 text-zinc-700">{label}</td>
-      <td className="py-2.5 px-3 text-right tabular-nums">{pv ? formatarMoeda(pv[field]) : "—"}</td>
-      <td className="py-2.5 px-3 text-right tabular-nums font-medium">{pv ? formatarMoeda(pv[pvmField]) : "—"}</td>
-      <td className="py-2.5 px-3 text-right tabular-nums">{pv ? formatarMoeda(pv[pvcxField]) : "—"}</td>
+    <tr className="hover:bg-[#FAFAFA] dark:hover:bg-[#27272A]/40">
+      <td className="px-4 py-3 text-[#52525B] dark:text-[#A1A1AA]">{label}</td>
+      <td className="px-4 py-3 text-right font-mono tabular-nums text-[#71717A]">{pv ? formatarMoeda(pv[field]) : "—"}</td>
+      <td className="px-4 py-3 text-right font-mono tabular-nums font-medium text-[#232021] dark:text-white">{pv ? formatarMoeda(pv[pvmField]) : "—"}</td>
+      <td className="px-4 py-3 text-right font-mono tabular-nums text-[#71717A]">{pv ? formatarMoeda(pv[pvcxField]) : "—"}</td>
     </tr>
   );
 }
 
-function AnatRow({ label, value, total, pct, highlight }: {
-  label: string; value: number; total: number; pct?: number; highlight?: boolean;
+function AnatRow({ label, value, total, accent }: {
+  label: string; value: number; total: number; accent?: boolean;
 }) {
   const share = total > 0 ? value / total : 0;
-  const labelFmt = pct ? label.replace("{pct}", formatarPercent(pct)) : label;
   return (
-    <div className={`flex justify-between items-center ${highlight ? "font-semibold text-[#065F46]" : ""}`}>
-      <span className="text-zinc-600">{labelFmt}</span>
-      <span className="tabular-nums">
-        {formatarMoeda(value)} <span className="text-zinc-400 text-xs">({formatarPercent(share)})</span>
+    <div className={`flex items-center justify-between gap-4 ${accent ? "font-semibold" : ""}`}>
+      <span className={accent ? "text-[#047857]" : "text-[#71717A]"}>{label}</span>
+      <span className={`font-mono tabular-nums ${accent ? "text-[#047857]" : "text-[#232021] dark:text-[#FAFAFA]"}`}>
+        {formatarMoeda(value)}{" "}
+        <span className="text-xs text-[#A1A1AA]">({formatarPercent(share)})</span>
       </span>
+    </div>
+  );
+}
+
+function MeiRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between gap-4">
+      <span className="text-[#71717A]">{label}</span>
+      <span className="font-mono tabular-nums font-medium text-[#232021] dark:text-white">{value}</span>
     </div>
   );
 }

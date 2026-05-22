@@ -1,16 +1,9 @@
 import type { Metadata, Viewport } from "next";
-import localFont from "next/font/local";
+import { GeistSans } from "geist/font/sans";
+import { GeistMono } from "geist/font/mono";
 import "./globals.css";
 import { Providers } from "@/components/layout/providers";
 import { PWARegister } from "@/components/layout/pwa-register";
-
-const geist = localFont({
-  src: [
-    { path: "./fonts/GeistVF.woff", weight: "100 900" },
-  ],
-  variable: "--font-geist",
-  fallback: ["system-ui", "sans-serif"],
-});
 
 export const metadata: Metadata = {
   title: "DTF Acabamentos",
@@ -19,7 +12,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#18181B",
+  themeColor: "#232021",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -29,11 +22,11 @@ const themeScript = `(function(){try{var t=localStorage.getItem("theme");var d=w
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pt-BR">
+    <html lang="pt-BR" className={`${GeistSans.variable} ${GeistMono.variable}`}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
-      <body className={`${geist.variable} font-sans antialiased bg-background text-foreground`}>
+      <body className="font-sans antialiased bg-[var(--background)] text-[var(--foreground)]">
         <Providers>{children}</Providers>
         <PWARegister />
       </body>

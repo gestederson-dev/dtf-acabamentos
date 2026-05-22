@@ -12,15 +12,21 @@ export default async function ConfiguracoesPage() {
   const config = await prisma.configuracao.findFirst();
 
   return (
-    <div className="p-6 max-w-2xl space-y-6">
-      <div>
-        <h1 className="text-xl font-bold text-zinc-900">Configurações</h1>
-        <p className="text-sm text-zinc-500">Parâmetros financeiros e política comercial da DTF</p>
+    <div className="mx-auto max-w-2xl px-4 py-6 lg:px-8 lg:py-10">
+
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-xl font-semibold tracking-tight text-[#232021] dark:text-white">Configurações</h1>
+        <p className="mt-0.5 text-sm text-[#71717A]">Parâmetros financeiros e política comercial da DTF</p>
       </div>
+
       <ConfigForm config={config} />
-      <p className="text-xs text-zinc-400 border border-zinc-200 rounded-md p-3 bg-zinc-50">
-        ⚠️ Mudar essas configurações afeta o preço sugerido nas próximas vendas. Vendas já registradas mantêm o valor original.
-      </p>
+
+      <div className="mt-6 rounded-md border border-[#FDE68A] bg-[#FFFBEB] px-4 py-3 dark:border-[#78350F]/40 dark:bg-[#78350F]/10">
+        <p className="text-xs text-[#B45309] dark:text-[#FCD34D]">
+          Mudar essas configurações afeta o preço sugerido nas próximas vendas. Vendas já registradas mantêm o valor original.
+        </p>
+      </div>
     </div>
   );
 }

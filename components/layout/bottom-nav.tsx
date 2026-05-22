@@ -6,36 +6,36 @@ import { LayoutDashboard, ShoppingCart, PlusCircle, BarChart2, MoreHorizontal } 
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/vendas", label: "Vendas", icon: ShoppingCart },
-  { href: "/vendas/nova", label: "Novo", icon: PlusCircle },
-  { href: "/analise", label: "Análise", icon: BarChart2 },
-  { href: "/mais", label: "Mais", icon: MoreHorizontal },
+  { href: "/dashboard",   label: "Dashboard", icon: LayoutDashboard },
+  { href: "/vendas",      label: "Vendas",     icon: ShoppingCart },
+  { href: "/vendas/nova", label: "Novo",       icon: PlusCircle },
+  { href: "/analise",     label: "Análise",    icon: BarChart2 },
+  { href: "/mais",        label: "Mais",       icon: MoreHorizontal },
 ];
 
 export function BottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-zinc-900 border-t border-zinc-200 dark:border-zinc-800 z-40">
-      <div className="flex">
-        {navItems.map(({ href, label, icon: Icon }) => {
-          const active = pathname === href || (href !== "/dashboard" && pathname.startsWith(href));
-          return (
-            <Link
-              key={href}
-              href={href}
-              className={cn(
-                "flex-1 flex flex-col items-center justify-center py-2 gap-0.5 transition-colors",
-                active ? "text-zinc-900 dark:text-zinc-100" : "text-zinc-400 dark:text-zinc-500"
-              )}
-            >
-              <Icon className="w-5 h-5" />
-              <span className="text-[10px]">{label}</span>
-            </Link>
-          );
-        })}
-      </div>
+    <nav className="md:hidden fixed bottom-0 inset-x-0 z-50 flex justify-around border-t border-[#E4E4E7] bg-white/95 backdrop-blur dark:border-[#27272A] dark:bg-[#0A0A0B]/95">
+      {navItems.map(({ href, label, icon: Icon }) => {
+        const active = pathname === href || (href !== "/dashboard" && pathname.startsWith(href));
+        return (
+          <Link
+            key={href}
+            href={href}
+            className={cn(
+              "flex flex-1 flex-col items-center gap-1 px-2 py-2.5 transition-colors duration-150",
+              active
+                ? "text-[#232021] dark:text-white"
+                : "text-[#A1A1AA] hover:text-[#71717A] dark:text-[#52525B] dark:hover:text-[#A1A1AA]"
+            )}
+          >
+            <Icon className="h-5 w-5" strokeWidth={active ? 2 : 1.5} />
+            <span className="text-[10px] font-medium">{label}</span>
+          </Link>
+        );
+      })}
     </nav>
   );
 }
