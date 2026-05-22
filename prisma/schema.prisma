@@ -1,0 +1,166 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// ============================================
+// AUTH (NextAuth.js)
+// ============================================
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  image     String?
+  password  String?
+  role      Role     @default(VENDEDOR)
+  ativo     Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  accounts Account[]
+  sessions Session[]
+  vendas   Venda[]
+}
+
+enum Role {
+  SOCIO
+  VENDEDOR
+}
+
+// ============================================
+// CONFIGURACAO (singleton)
+// ============================================
+model Configuracao {
+  id                  String   @id @default(cuid())
+  percentLucro        Float    @default(0.40)
+  percentComissao     Float    @default(0.06)
+  percentImposto      Float    @default(0.08)
+  custoEmbalagem      Float    @default(10.00)
+  pecasPorCaixa       Int      @default(20)
+  descontoMaximoLivre Float    @default(0.05)
+  freteGratisAcimaCx  Int      @default(5)
+  metaMensalRS        Float?
+  tetoMEIAnual        Float    @default(81000.00)
+  atualizadoEm        DateTime @updatedAt
+}
+
+// ============================================
+// PRODUTO
+// ============================================
+model Produto {
+  id            String   @id @default(cuid())
+  nome          String
+  larguraCm     Int      @unique
+  custoUnitario Float
+  ativo         Boolean  @default(true)
+  criadoEm      DateTime @default(now())
+  atualizadoEm  DateTime @updatedAt
+
+  vendas Venda[]
+}
+
+// ============================================
+// CLIENTE
+// ============================================
+model Cliente {
+  id       String   @id @default(cuid())
+  nome     String
+  telefone String?
+  email    String?
+  empresa  String?
+  cnpjCpf  String?
+  criadoEm DateTime @default(now())
+
+  vendas Venda[]
+}
+
+// ============================================
+// VENDA
+// ============================================
+model Venda {
+  id                String         @id @default(cuid())
+  numero            Int            @unique
+  data              DateTime
+  vendedor          User           @relation(fields: [vendedorId], references: [id])
+  vendedorId        String
+  cliente           Cliente?       @relation(fields: [clienteId], references: [id])
+  clienteId         String?
+  clienteNomeAvulso String?
+
+  produto      Produto @relation(fields: [produtoId], references: [id])
+  produtoId    String
+  comEmbalagem Boolean @default(true)
+
+  metros          Float
+  pecas           Int
+  precoUnitario   Float
+  descontoPercent Float          @default(0)
+  valorTotal      Float
+
+  custoProduto   Float
+  custoEmbalagem Float
+  custoImposto   Float
+  custoComissao  Float
+  lucroLimpo     Float
+
+  status         StatusVenda    @default(ORCAMENTO)
+  formaPagamento FormaPagamento @default(PIX)
+  observacao     String?
+  shareToken     String?        @unique
+
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+}
+
+enum StatusVenda {
+  ORCAMENTO
+  CONFIRMADO
+  ENTREGUE
+  PAGO
+  CANCELADO
+}
+
+enum FormaPagamento {
+  PIX
+  BOLETO
+  CARTAO_1X
+  CARTAO_2X
+  CARTAO_3X
+  DINHEIRO
+}
