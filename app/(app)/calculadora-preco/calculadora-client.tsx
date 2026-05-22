@@ -7,9 +7,6 @@ import {
 } from "@/lib/pricing";
 import type { Configuracao, Produto } from "@prisma/client";
 
-const fieldCls = "h-10 w-full rounded-md border border-[#E4E4E7] bg-white px-3 text-sm tabular-nums text-[#232021] focus:outline-none focus:ring-1 focus:ring-[#232021] focus:border-[#232021] dark:border-[#27272A] dark:bg-[#18181B] dark:text-white";
-const labelCls = "mb-1 block text-xs font-medium text-[#71717A]";
-
 interface Props {
   config: Configuracao | null;
   produtos: Produto[];
