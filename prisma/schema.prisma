@@ -149,6 +149,11 @@ model Venda {
 
   criadoEm     DateTime @default(now())
   atualizadoEm DateTime @updatedAt
+
+  @@index([vendedorId])
+  @@index([status])
+  @@index([data])
+  @@index([vendedorId, data])
 }
 
 enum StatusVenda {

@@ -231,17 +231,17 @@ Subtotal: ${formatarMoeda(anatomia?.faturamentoBruto ?? 0)}${nDesconto > 0 ? `\n
 
       {/* Alertas */}
       {descontoAlto && !isSocio && (
-        <div className="rounded-md border border-[#FDE68A] bg-[#FFFBEB] px-4 py-3 text-sm text-[#B45309]">
+        <div className="rounded-md border border-[#FDE68A] bg-[#FFFBEB] px-4 py-3 text-sm text-[#B45309] dark:border-[#713F12] dark:bg-[#27272A] dark:text-[#FCD34D]">
           Desconto acima de {formatarPercent(descontoMaxLivre)} — precisa autorização do sócio
         </div>
       )}
       {margemBaixa && (
-        <div className="rounded-md border border-[#FDE68A] bg-[#FFFBEB] px-4 py-3 text-sm text-[#B45309]">
+        <div className="rounded-md border border-[#FDE68A] bg-[#FFFBEB] px-4 py-3 text-sm text-[#B45309] dark:border-[#713F12] dark:bg-[#27272A] dark:text-[#FCD34D]">
           Margem baixa ({formatarPercent(anatomia!.margemReal)}) — verifique antes de confirmar
         </div>
       )}
       {prejuizo && (
-        <div className="rounded-md border border-[#FECACA] bg-[#FEF2F2] px-4 py-3 text-sm text-[#B91C1C]">
+        <div className="rounded-md border border-[#FECACA] bg-[#FEF2F2] px-4 py-3 text-sm text-[#B91C1C] dark:border-[#7F1D1D] dark:bg-[#27272A] dark:text-[#FCA5A5]">
           Venda em prejuízo — não é possível salvar
         </div>
       )}

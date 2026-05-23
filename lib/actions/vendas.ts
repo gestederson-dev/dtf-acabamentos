@@ -47,37 +47,38 @@ export async function salvarVenda(formData: FormData) {
   // Margem mínima absoluta — bloquear prejuízo
   if (anatomia.margemReal < 0) throw new Error("Venda em prejuízo não permitida");
 
-  // Próximo número
-  const ultima = await prisma.venda.findFirst({ orderBy: { numero: "desc" } });
-  const numero = (ultima?.numero ?? 0) + 1;
-
   const clienteId = formData.get("clienteId") as string | null;
   const clienteNomeAvulso = formData.get("clienteNomeAvulso") as string | null;
 
-  const venda = await prisma.venda.create({
-    data: {
-      numero,
-      data: new Date(),
-      vendedorId: session.user.id,
-      clienteId: clienteId || undefined,
-      clienteNomeAvulso: clienteNomeAvulso || undefined,
-      produtoId: produto.id,
-      comEmbalagem,
-      metros,
-      pecas: metros * 4,
-      precoUnitario: pvMetro,
-      descontoPercent,
-      valorTotal: anatomia.valorVenda,
-      custoProduto: anatomia.custoProduto,
-      custoEmbalagem: anatomia.custoEmbalagem,
-      custoImposto: anatomia.custoImposto,
-      custoComissao: anatomia.custoComissao,
-      lucroLimpo: anatomia.lucroLimpo,
-      status,
-      formaPagamento: (formData.get("formaPagamento") as FormaPagamento) || FormaPagamento.PIX,
-      observacao: (formData.get("observacao") as string) || undefined,
-      shareToken: `dtf_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-    },
+  // Número gerado atomicamente dentro de uma transação para evitar duplicatas
+  const venda = await prisma.$transaction(async (tx) => {
+    const ultima = await tx.venda.findFirst({ orderBy: { numero: "desc" }, select: { numero: true } });
+    const numero = (ultima?.numero ?? 0) + 1;
+    return tx.venda.create({
+      data: {
+        numero,
+        data: new Date(),
+        vendedorId: session.user.id,
+        clienteId: clienteId || undefined,
+        clienteNomeAvulso: clienteNomeAvulso || undefined,
+        produtoId: produto.id,
+        comEmbalagem,
+        metros,
+        pecas: metros * 4,
+        precoUnitario: pvMetro,
+        descontoPercent,
+        valorTotal: anatomia.valorVenda,
+        custoProduto: anatomia.custoProduto,
+        custoEmbalagem: anatomia.custoEmbalagem,
+        custoImposto: anatomia.custoImposto,
+        custoComissao: anatomia.custoComissao,
+        lucroLimpo: anatomia.lucroLimpo,
+        status,
+        formaPagamento: (formData.get("formaPagamento") as FormaPagamento) || FormaPagamento.PIX,
+        observacao: (formData.get("observacao") as string) || undefined,
+        shareToken: `dtf_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+      },
+    });
   });
 
   revalidatePath("/vendas");
