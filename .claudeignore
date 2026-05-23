@@ -1,0 +1,25 @@
+# Dependências e cache
+node_modules/
+.next/
+.vercel/
+.pnpm-store/
+
+# Lock files (grandes, nunca relevantes para edição)
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+
+# Build outputs
+dist/
+build/
+out/
+
+# Gerados automaticamente
+prisma/migrations/
+*.min.js
+*.min.css
+
+# Cache e temporários
+.cache/
+*.log
+.DS_Store
