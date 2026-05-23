@@ -24,7 +24,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     return new NextResponse("Sem permissão", { status: 403 });
   }
 
-  const logoPath = join(process.cwd(), "public", "brand", "logo.png");
+  const logoPath = join(process.cwd(), "public", "brand", "logo-preto.png");
   const logoBase64 = existsSync(logoPath)
     ? `data:image/png;base64,${readFileSync(logoPath).toString("base64")}`
     : undefined;
