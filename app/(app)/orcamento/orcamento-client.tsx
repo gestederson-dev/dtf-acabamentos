@@ -56,8 +56,8 @@ export function OrcamentoClient({ config, produtos, clientes, isSocio }: Props) 
   const descontoMaxLivre = c?.descontoMaximoLivre ?? 0.05;
   const freteGratisCx    = c?.freteGratisAcimaCx ?? 5;
 
-  const nMetros  = arredondarMetragem(Number(metros) || 0);
-  const nDesconto = Number(desconto) / 100;
+  const nMetros  = arredondarMetragem(Number(metros.replace(",", ".")) || 0);
+  const nDesconto = Number(String(desconto).replace(",", ".")) / 100;
   const pecas    = nMetros * 4;
   const empack   = sugerirEmpacotamento(pecas, c?.pecasPorCaixa ?? 20);
 
@@ -90,8 +90,7 @@ Preço por metro: ${formatarMoeda(pvMetro)}
 
 Subtotal: ${formatarMoeda(anatomia?.faturamentoBruto ?? 0)}${nDesconto > 0 ? `\nDesconto: -${formatarMoeda(anatomia?.desconto ?? 0)}` : ""}
 
-*TOTAL: ${formatarMoeda(anatomia?.valorVenda ?? 0)}*
-Pagamento: ${FORMAS.find((f) => f.value === forma)?.label ?? forma}${freteGratis ? "\n✅ Frete grátis incluído" : ""}`;
+*TOTAL: ${formatarMoeda(anatomia?.valorVenda ?? 0)}*${freteGratis ? "\n✅ Frete grátis incluído" : ""}`;
 
   function copiarTexto() {
     navigator.clipboard.writeText(textoWhatsApp);
@@ -187,6 +186,7 @@ Pagamento: ${FORMAS.find((f) => f.value === forma)?.label ?? forma}${freteGratis
               <div className="flex gap-1">
                 <input
                   type="number" step="0.25" min="0.25" value={metros}
+                  inputMode="decimal"
                   onChange={(e) => setMetros(e.target.value)}
                   className={`${fieldCls} tabular-nums`}
                 />
@@ -204,6 +204,7 @@ Pagamento: ${FORMAS.find((f) => f.value === forma)?.label ?? forma}${freteGratis
               <label className={labelCls}>Desconto (%)</label>
               <input
                 type="number" step="0.5" min="0" max="100" value={desconto}
+                inputMode="decimal"
                 onChange={(e) => setDesconto(e.target.value)}
                 className={`${fieldCls} tabular-nums ${descontoAlto ? "border-[#FCD34D] focus:ring-[#B45309]" : ""}`}
               />

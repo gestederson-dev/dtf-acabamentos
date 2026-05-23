@@ -8,6 +8,7 @@ import { ptBR } from "date-fns/locale";
 import { dadosMensais, dadosComissaoSemanal } from "@/lib/dados-dashboard";
 import { GraficoLucroMensal } from "@/components/charts/grafico-lucro-mensal";
 import { GraficoComissaoSemanal } from "@/components/charts/grafico-comissao-semanal";
+import { DashboardSections } from "./dashboard-sections";
 import Link from "next/link";
 
 export default async function DashboardPage() {
@@ -17,17 +18,23 @@ export default async function DashboardPage() {
   const inicioMes = startOfMonth(new Date());
   const fimMes = endOfMonth(new Date());
 
+  // KPI aggregates exclude CANCELADO
   const whereBase = {
     data: { gte: inicioMes, lte: fimMes },
     status: { not: StatusVenda.CANCELADO },
     ...(isSocio || !session ? {} : { vendedorId: session.user.id }),
   };
 
-  const [vendas, totais, config] = await Promise.all([
+  // Sections display includes all statuses
+  const whereVendas = {
+    data: { gte: inicioMes, lte: fimMes },
+    ...(isSocio || !session ? {} : { vendedorId: session.user.id }),
+  };
+
+  const [vendasRaw, totais, config] = await Promise.all([
     prisma.venda.findMany({
-      where: whereBase,
+      where: whereVendas,
       orderBy: { data: "desc" },
-      take: 5,
       include: { cliente: true, produto: true },
     }),
     prisma.venda.aggregate({
@@ -64,13 +71,20 @@ export default async function DashboardPage() {
 
   const mesLabel = format(new Date(), "MMMM 'de' yyyy", { locale: ptBR });
 
-  const STATUS_BADGE: Record<StatusVenda, { label: string; cls: string }> = {
-    ORCAMENTO:  { label: "Orçamento",  cls: "border-[#E4E4E7] bg-white text-[#52525B]" },
-    CONFIRMADO: { label: "Confirmado", cls: "border-[#232021] bg-[#232021] text-white" },
-    ENTREGUE:   { label: "Entregue",   cls: "border-[#E4E4E7] bg-[#F4F4F5] text-[#52525B]" },
-    PAGO:       { label: "Pago",       cls: "border-[#A7F3D0] bg-[#ECFDF5] text-[#047857]" },
-    CANCELADO:  { label: "Cancelado",  cls: "border-[#FECACA] bg-[#FEF2F2] text-[#B91C1C]" },
-  };
+  // Serialize dates for RSC → client boundary
+  const vendas = vendasRaw.map((v) => ({
+    id: v.id,
+    numero: v.numero,
+    data: format(v.data, "dd/MM", { locale: ptBR }),
+    status: v.status,
+    valorTotal: v.valorTotal,
+    lucroLimpo: v.lucroLimpo,
+    custoComissao: v.custoComissao,
+    metros: v.metros,
+    cliente: v.cliente ? { nome: v.cliente.nome } : null,
+    clienteNomeAvulso: v.clienteNomeAvulso,
+    produto: { nome: v.produto.nome },
+  }));
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 lg:px-8 lg:py-10">
@@ -152,15 +166,14 @@ export default async function DashboardPage() {
         </div>
       )}
 
-      {/* Últimas vendas */}
+      {/* Seções por status */}
       <div>
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-[#232021] dark:text-white">Últimas vendas</h2>
+          <h2 className="text-sm font-semibold text-[#232021] dark:text-white">Vendas do mês</h2>
           <Link href="/vendas" className="text-xs text-[#71717A] underline-offset-2 hover:text-[#232021] hover:underline dark:hover:text-white">
             Ver todas →
           </Link>
         </div>
-
         {vendas.length === 0 ? (
           <div className="rounded-md border border-dashed border-[#E4E4E7] py-14 text-center dark:border-[#27272A]">
             <p className="text-sm text-[#71717A]">Nenhuma venda registrada este mês.</p>
@@ -169,41 +182,7 @@ export default async function DashboardPage() {
             </Link>
           </div>
         ) : (
-          <div className="overflow-hidden rounded-md border border-[#E4E4E7] dark:border-[#27272A]">
-            <table className="w-full text-sm">
-              <thead className="border-b border-[#E4E4E7] bg-[#FAFAFA] dark:border-[#27272A] dark:bg-[#18181B]">
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#71717A]">#</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#71717A]">Cliente</th>
-                  <th className="hidden px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#71717A] sm:table-cell">Produto</th>
-                  <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-[#71717A]">Total</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#71717A]">Status</th>
-                  {isSocio && <th className="hidden px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-[#71717A] md:table-cell">Lucro</th>}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#F4F4F5] dark:divide-[#27272A]">
-                {vendas.map((v) => {
-                  const sb = STATUS_BADGE[v.status];
-                  return (
-                    <Link key={v.id} href={`/vendas/${v.id}`} legacyBehavior>
-                      <tr className="cursor-pointer transition-colors hover:bg-[#FAFAFA] dark:hover:bg-[#27272A]/40">
-                        <td className="px-4 py-3 font-mono text-xs text-[#A1A1AA]">#{v.numero}</td>
-                        <td className="px-4 py-3 font-medium text-[#232021] dark:text-white">{v.cliente?.nome ?? v.clienteNomeAvulso ?? "—"}</td>
-                        <td className="hidden px-4 py-3 text-[#71717A] sm:table-cell">{v.produto.nome}</td>
-                        <td className="px-4 py-3 text-right font-mono tabular-nums font-medium text-[#232021] dark:text-white">{formatarMoeda(v.valorTotal)}</td>
-                        <td className="px-4 py-3">
-                          <span className={`inline-flex items-center rounded-sm border px-2 py-0.5 text-xs font-medium ${sb.cls}`}>{sb.label}</span>
-                        </td>
-                        {isSocio && (
-                          <td className="hidden px-4 py-3 text-right font-mono tabular-nums text-[#047857] md:table-cell">{formatarMoeda(v.lucroLimpo)}</td>
-                        )}
-                      </tr>
-                    </Link>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+          <DashboardSections vendas={vendas} isSocio={isSocio} />
         )}
       </div>
 

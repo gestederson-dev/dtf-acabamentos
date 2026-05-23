@@ -3,7 +3,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Role, StatusVenda } from "@prisma/client";
 import { notFound } from "next/navigation";
-import { format } from "date-fns";
+import { format, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { formatarMoeda, formatarPercent, statusMargem } from "@/lib/pricing";
 import { AtualizarStatus } from "./atualizar-status";
@@ -41,6 +41,9 @@ export default async function VendaDetalhePage({ params }: { params: { id: strin
   const sm = statusMargem(margem);
   const nomeCliente = venda.cliente?.nome ?? venda.clienteNomeAvulso ?? "—";
   const statusDisponiveis = Object.values(StatusVenda).filter((s) => s !== venda.status);
+  const diasConversao = venda.dataConfirmado
+    ? differenceInDays(venda.dataConfirmado, venda.criadoEm)
+    : null;
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-6 lg:px-8 lg:py-10">
@@ -84,6 +87,12 @@ export default async function VendaDetalhePage({ params }: { params: { id: strin
             <DataRow label="Pagamento" value={FORMA_LABEL[venda.formaPagamento] ?? venda.formaPagamento} />
             <DataRow label="Vendedor" value={venda.vendedor.name ?? "—"} />
             {venda.observacao && <DataRow label="Observação" value={venda.observacao} />}
+            {diasConversao !== null && (
+              <DataRow
+                label="Conversão"
+                value={diasConversao === 0 ? "mesmo dia" : `${diasConversao} dia${diasConversao !== 1 ? "s" : ""}`}
+              />
+            )}
           </div>
         </div>
 

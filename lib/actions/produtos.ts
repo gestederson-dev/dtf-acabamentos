@@ -12,3 +12,12 @@ export async function toggleProdutoAtivo(produtoId: string, ativo: boolean) {
   await prisma.produto.update({ where: { id: produtoId }, data: { ativo } });
   revalidatePath("/produtos");
 }
+
+export async function atualizarCustoProduto(produtoId: string, custoUnitario: number) {
+  const session = await getServerSession(authOptions);
+  if (session?.user?.role !== Role.SOCIO) throw new Error("Sem permissão");
+  if (custoUnitario <= 0) throw new Error("Custo deve ser maior que zero");
+  await prisma.produto.update({ where: { id: produtoId }, data: { custoUnitario } });
+  revalidatePath("/produtos");
+  revalidatePath("/vendas/nova");
+}

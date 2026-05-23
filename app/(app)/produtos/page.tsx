@@ -3,8 +3,8 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Role } from "@prisma/client";
 import { redirect } from "next/navigation";
-import { formatarMoeda } from "@/lib/pricing";
 import { ToggleAtivo } from "./toggle-ativo";
+import { EditarCusto } from "./editar-custo";
 
 export default async function ProdutosPage() {
   const session = await getServerSession(authOptions);
@@ -29,14 +29,11 @@ export default async function ProdutosPage() {
                 <p className={`font-semibold ${p.ativo ? "text-[#232021] dark:text-white" : "text-[#A1A1AA]"}`}>
                   {p.nome}
                 </p>
-                <p className="mt-1 text-sm text-[#71717A]">
-                  Custo unitário:{" "}
-                  <span className="font-mono tabular-nums font-medium text-[#232021] dark:text-white">
-                    {formatarMoeda(p.custoUnitario)}/peça
-                  </span>
-                  {" · "}
-                  {p.larguraCm} cm
-                </p>
+                <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-[#71717A]">
+                  <span>Custo unitário:</span>
+                  <EditarCusto produtoId={p.id} custoAtual={p.custoUnitario} />
+                  <span>· {p.larguraCm} cm</span>
+                </div>
               </div>
               <ToggleAtivo produtoId={p.id} ativo={p.ativo} />
             </div>

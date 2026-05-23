@@ -89,11 +89,13 @@ function TabSensibilidade({ config, produtos }: { config: Configuracao | null; p
             label={`Lucro alvo: ${lucro}%`}
             value={lucro} min={5} max={70} step={1}
             onChange={setLucro}
+            configValue={Math.round((config?.percentLucro ?? 0.4) * 100)}
           />
           <SliderField
             label={`Custo da caixa: ${formatarMoeda(custoEmb)}`}
             value={custoEmb} min={5} max={30} step={0.5}
             onChange={setCustoEmb}
+            configValue={config?.custoEmbalagem ?? 10}
           />
           <p className="text-xs text-[#A1A1AA]">
             Comissão: {comissao}% · Imposto: {imposto}% · Total sobre venda: {lucro + comissao + imposto}%
@@ -141,13 +143,22 @@ function TabSensibilidade({ config, produtos }: { config: Configuracao | null; p
   );
 }
 
-function SliderField({ label, value, min, max, step, onChange }: {
+function SliderField({ label, value, min, max, step, onChange, configValue }: {
   label: string; value: number; min: number; max: number; step: number;
   onChange: (v: number) => void;
+  configValue?: number;
 }) {
+  const changed = configValue !== undefined && configValue !== value;
   return (
     <div className="space-y-2">
-      <label className="text-sm font-medium text-[#232021] dark:text-white">{label}</label>
+      <div className="flex items-center justify-between">
+        <label className="text-sm font-medium text-[#232021] dark:text-white">{label}</label>
+        {changed && (
+          <span className="text-xs text-[#A1A1AA]">
+            config atual: <span className="font-medium text-[#71717A]">{configValue}%</span>
+          </span>
+        )}
+      </div>
       <input
         type="range" min={min} max={max} step={step} value={value}
         onChange={(e) => onChange(Number(e.target.value))}

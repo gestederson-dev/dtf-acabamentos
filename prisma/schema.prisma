@@ -145,6 +145,8 @@ model Venda {
   observacao     String?
   shareToken     String?        @unique
 
+  dataConfirmado DateTime?
+
   criadoEm     DateTime @default(now())
   atualizadoEm DateTime @updatedAt
 }

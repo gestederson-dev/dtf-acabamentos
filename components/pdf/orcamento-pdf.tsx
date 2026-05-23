@@ -1,5 +1,5 @@
 import {
-  Document, Page, Text, View, StyleSheet,
+  Document, Page, Text, View, StyleSheet, Image,
 } from "@react-pdf/renderer";
 import type { Venda, Cliente, Produto, User } from "@prisma/client";
 
@@ -38,7 +38,7 @@ const s = StyleSheet.create({
   validadeText: { color: "#065F46", fontSize: 9, textAlign: "center" },
 });
 
-export function OrcamentoPDF({ venda }: { venda: VendaCompleta }) {
+export function OrcamentoPDF({ venda, logoBase64 }: { venda: VendaCompleta; logoBase64?: string }) {
   const nomeCliente = venda.cliente?.nome ?? venda.clienteNomeAvulso ?? "—";
   const nomeProduto = `${venda.produto.nome} ${venda.comEmbalagem ? "c/ embalagem" : "s/ embalagem"}`;
   const dataValidade = new Date(venda.criadoEm);
@@ -54,9 +54,16 @@ export function OrcamentoPDF({ venda }: { venda: VendaCompleta }) {
       <Page size="A4" style={s.page}>
 
         {/* Cabeçalho */}
-        <View style={s.header}>
-          <Text style={s.empresa}>DTF Acabamentos</Text>
-          <Text style={s.subtitle}>Pingadeiras de qualidade para sua obra</Text>
+        <View style={[s.header, { flexDirection: "row", alignItems: "center", gap: 12 }]}>
+          {logoBase64 ? (
+            <Image src={logoBase64} style={{ height: 40, maxWidth: 120, objectFit: "contain" }} />
+          ) : (
+            <Text style={s.empresa}>DTF Acabamentos</Text>
+          )}
+          <View>
+            {logoBase64 && <Text style={s.empresa}>DTF Acabamentos</Text>}
+            <Text style={s.subtitle}>Pingadeiras de qualidade para sua obra</Text>
+          </View>
         </View>
 
         {/* Título + status */}

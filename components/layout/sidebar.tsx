@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import {
   LayoutDashboard, ShoppingCart, PlusCircle, BarChart2,
-  Settings, Package, Users, Calculator, FileText, LogOut, BookOpen,
+  Settings, Package, Users, Calculator, LogOut, BookOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Role } from "@prisma/client";
@@ -16,7 +16,6 @@ const navVendas = [
   { href: "/dashboard",   label: "Dashboard",  icon: LayoutDashboard },
   { href: "/vendas",      label: "Vendas",      icon: ShoppingCart },
   { href: "/vendas/nova", label: "Nova Venda",  icon: PlusCircle },
-  { href: "/orcamento",   label: "Orçamento",   icon: FileText },
   { href: "/clientes",    label: "Clientes",    icon: Users },
 ];
 
