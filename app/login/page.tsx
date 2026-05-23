@@ -52,13 +52,13 @@ export default function LoginPage() {
 
         {/* Logo / Brand */}
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-4">
+          <div className="mb-4 flex justify-center">
             <Image
               src="/brand/logo.png"
               alt="DTF Acabamentos"
-              width={72}
-              height={72}
-              className="h-16 w-16 object-contain brightness-0 dark:invert"
+              width={96}
+              height={96}
+              className="h-24 w-24 object-contain brightness-0 dark:invert"
               priority
               unoptimized
             />
