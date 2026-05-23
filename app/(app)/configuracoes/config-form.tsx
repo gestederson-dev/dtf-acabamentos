@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { salvarConfiguracoes } from "@/lib/actions/configuracoes";
 import { useToast } from "@/hooks/use-toast";
 import type { Configuracao } from "@prisma/client";
@@ -28,6 +28,8 @@ export function ConfigForm({ config }: Props) {
   }
 
   const c = config;
+  const [freteAtivo, setFreteAtivo] = useState((c?.freteGratisAcimaCx ?? 0) > 0);
+  const [freteCaixas, setFreteCaixas] = useState(c?.freteGratisAcimaCx ?? 5);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -48,9 +50,54 @@ export function ConfigForm({ config }: Props) {
       </Section>
 
       <Section title="Política Comercial">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Field label="Desconto máximo sem autorização (%)" name="descontoMaximoLivre" defaultValue={pct(c?.descontoMaximoLivre, 5)} />
-          <Field label="Frete grátis acima de (caixas)"      name="freteGratisAcimaCx"  defaultValue={String(c?.freteGratisAcimaCx ?? 5)} step="1" />
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Field label="Desconto máximo sem autorização (%)" name="descontoMaximoLivre" defaultValue={pct(c?.descontoMaximoLivre, 5)} />
+          </div>
+
+          {/* Frete grátis toggle */}
+          <div className="rounded-md border border-[#E4E4E7] p-4 dark:border-[#27272A]">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-sm font-medium text-[#232021] dark:text-white">Frete grátis</p>
+                <p className="text-xs text-[#71717A]">
+                  {freteAtivo ? `Ativo a partir de ${freteCaixas} caixa${freteCaixas !== 1 ? "s" : ""}` : "Desativado"}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setFreteAtivo((v) => !v)}
+                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus:outline-none ${
+                  freteAtivo ? "bg-[#232021] dark:bg-white" : "bg-[#E4E4E7] dark:bg-[#27272A]"
+                }`}
+              >
+                <span
+                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full shadow transition-transform ${
+                    freteAtivo
+                      ? "translate-x-5 bg-white dark:bg-[#232021]"
+                      : "translate-x-0 bg-white dark:bg-[#71717A]"
+                  }`}
+                />
+              </button>
+            </div>
+
+            {freteAtivo && (
+              <div className="mt-4">
+                <label className={labelCls}>A partir de quantas caixas</label>
+                <input
+                  type="number"
+                  step="1"
+                  min="1"
+                  value={freteCaixas}
+                  onChange={(e) => setFreteCaixas(Number(e.target.value))}
+                  className={fieldCls}
+                />
+              </div>
+            )}
+
+            {/* campo hidden envia o valor correto ao salvar */}
+            <input type="hidden" name="freteGratisAcimaCx" value={freteAtivo ? freteCaixas : 0} />
+          </div>
         </div>
       </Section>
 

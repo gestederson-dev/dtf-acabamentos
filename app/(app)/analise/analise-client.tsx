@@ -162,7 +162,7 @@ function SliderField({ label, value, min, max, step, onChange, configValue }: {
       <input
         type="range" min={min} max={max} step={step} value={value}
         onChange={(e) => onChange(Number(e.target.value))}
-        className="w-full cursor-pointer appearance-none accent-[#232021] dark:accent-white"
+        className="w-full cursor-pointer accent-[#232021] dark:accent-white"
       />
       <div className="flex justify-between text-xs text-[#A1A1AA]">
         <span>{min}</span>
