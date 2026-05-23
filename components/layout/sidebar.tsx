@@ -24,9 +24,10 @@ const navAnalise = [
 ];
 
 const navSocio = [
-  { href: "/calculadora-preco", label: "Calculadora", icon: Calculator },
-  { href: "/produtos",          label: "Produtos",     icon: Package },
-  { href: "/configuracoes",     label: "Configurações", icon: Settings },
+  { href: "/calculadora-preco",  label: "Calculadora",  icon: Calculator },
+  { href: "/produtos",           label: "Produtos",      icon: Package },
+  { href: "/admin/usuarios",     label: "Usuários",      icon: Users },
+  { href: "/configuracoes",      label: "Configurações", icon: Settings },
 ];
 
 const navGuia = [
