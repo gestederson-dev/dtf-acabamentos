@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import {
@@ -9,7 +10,6 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Role } from "@prisma/client";
-import { Logo } from "@/components/brand/logo";
 import { DarkModeToggle } from "./dark-mode-toggle";
 
 const navVendas = [
@@ -77,12 +77,15 @@ export function Sidebar() {
   return (
     <aside className="hidden md:flex w-60 flex-col border-r border-[#E4E4E7] bg-white dark:border-[#27272A] dark:bg-[#0A0A0B]">
       {/* Logo */}
-      <div className="flex h-14 items-center gap-3 border-b border-[#E4E4E7] px-5 dark:border-[#27272A]">
-        <Logo />
-        <div className="flex flex-col leading-none">
-          <span className="text-sm font-semibold tracking-tight text-[#232021] dark:text-white">DTF</span>
-          <span className="text-[10px] text-[#71717A]">Acabamentos</span>
-        </div>
+      <div className="flex h-14 items-center border-b border-[#E4E4E7] px-5 dark:border-[#27272A]">
+        <Image
+          src="/brand/logo.png"
+          alt="DTF Acabamentos"
+          width={140}
+          height={40}
+          className="h-8 w-auto object-contain dark:invert"
+          priority
+        />
       </div>
 
       {/* Nav */}
