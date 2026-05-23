@@ -89,9 +89,17 @@ export async function atualizarStatusVenda(vendaId: string, status: StatusVenda)
   const session = await getServerSession(authOptions);
   if (!session) throw new Error("Não autenticado");
 
-  const venda = await prisma.venda.findUnique({ where: { id: vendaId }, select: { dataConfirmado: true } });
+  const venda = await prisma.venda.findUnique({
+    where: { id: vendaId },
+    select: { vendedorId: true, dataConfirmado: true },
+  });
+  if (!venda) throw new Error("Venda não encontrada");
+
+  const isSocio = session.user.role === Role.SOCIO;
+  if (!isSocio && venda.vendedorId !== session.user.id) throw new Error("Sem permissão");
+
   const dataConfirmado =
-    status === StatusVenda.CONFIRMADO && !venda?.dataConfirmado ? new Date() : undefined;
+    status === StatusVenda.CONFIRMADO && !venda.dataConfirmado ? new Date() : undefined;
 
   await prisma.venda.update({
     where: { id: vendaId },

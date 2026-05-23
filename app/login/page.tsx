@@ -134,7 +134,7 @@ export default function LoginPage() {
         </div>
 
         <p className="mt-6 text-center text-xs text-[#A1A1AA]">
-          Dev: socio@dtf.com.br / dtf123
+          Acesso restrito a usuários autorizados
         </p>
       </div>
     </div>

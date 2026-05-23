@@ -2,11 +2,11 @@ import { Sidebar } from "@/components/layout/sidebar";
 import { BottomNav } from "@/components/layout/bottom-nav";
 import { MobileHeader } from "@/components/layout/mobile-header";
 import { prisma } from "@/lib/prisma";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
-
-// TEMPORÁRIO — auth desativada para testes. Reativar antes de entregar ao cliente:
-// import { getServerSession } from "next-auth"; import { authOptions } from "@/lib/auth"; import { redirect } from "next/navigation";
 
 async function autoSeed() {
   try {
@@ -28,7 +28,8 @@ async function autoSeed() {
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   await autoSeed();
-  // const session = await getServerSession(authOptions); if (!session) redirect("/login");
+  const session = await getServerSession(authOptions);
+  if (!session) redirect("/login");
 
   return (
     <div className="flex min-h-screen">
