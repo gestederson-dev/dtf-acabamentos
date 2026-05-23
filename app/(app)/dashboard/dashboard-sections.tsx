@@ -113,7 +113,7 @@ export function DashboardSections({ vendas, isSocio }: { vendas: VendaResumo[]; 
                   return (
                     <div
                       key={v.id}
-                      className={`flex items-center gap-3 px-5 py-3 transition-opacity ${isLoading ? "opacity-40" : ""}`}
+                      className={`flex flex-col gap-2 px-5 py-3 transition-opacity sm:flex-row sm:items-center sm:gap-3 ${isLoading ? "opacity-40" : ""}`}
                     >
                       <Link href={`/vendas/${v.id}`} className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-baseline gap-2">
@@ -130,7 +130,7 @@ export function DashboardSections({ vendas, isSocio }: { vendas: VendaResumo[]; 
                         </div>
                       </Link>
                       {transitions.length > 0 && (
-                        <div className="flex shrink-0 items-center gap-1.5">
+                        <div className="flex items-center gap-1.5">
                           {transitions.map((t) => (
                             <button
                               key={t.status}

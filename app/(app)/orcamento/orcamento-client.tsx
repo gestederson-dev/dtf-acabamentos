@@ -78,7 +78,7 @@ export function OrcamentoClient({ config, produtos, clientes, isSocio }: Props) 
   const descontoAlto = nDesconto > descontoMaxLivre;
   const margemBaixa  = anatomia && anatomia.margemReal < 0.25 && anatomia.margemReal >= 0;
   const prejuizo     = anatomia && anatomia.margemReal < 0;
-  const freteGratis  = empack.caixas >= freteGratisCx;
+  const freteGratis  = freteGratisCx > 0 && empack.caixas >= freteGratisCx;
   const nomeProduto  = produto ? `${produto.nome}${comEmbalagem ? " c/ embalagem" : " s/ embalagem"}` : "";
 
   const textoWhatsApp = `*Orçamento DTF Acabamentos*
