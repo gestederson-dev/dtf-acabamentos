@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -51,12 +52,16 @@ export default function LoginPage() {
 
         {/* Logo / Brand */}
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-10 w-10 items-center justify-center rounded-md bg-[#232021] dark:bg-white">
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="text-white dark:text-[#232021]">
-              <rect x="2" y="2" width="16" height="16" rx="2" fill="currentColor" opacity="0.15" />
-              <path d="M5 5h6v3H8v7H5V5z" fill="currentColor" />
-              <path d="M8 8h7v3h-7z" fill="currentColor" />
-            </svg>
+          <div className="mx-auto mb-4">
+            <Image
+              src="/brand/logo.png"
+              alt="DTF Acabamentos"
+              width={72}
+              height={72}
+              className="h-16 w-16 object-contain brightness-0 dark:invert"
+              priority
+              unoptimized
+            />
           </div>
           <h1 className="text-xl font-semibold tracking-tight text-[#232021] dark:text-white">DTF Acabamentos</h1>
           <p className="mt-0.5 text-sm text-[#71717A]">Sistema Comercial</p>
