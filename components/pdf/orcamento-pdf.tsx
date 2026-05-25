@@ -40,7 +40,7 @@ const s = StyleSheet.create({
 
 export function OrcamentoPDF({ venda, logoBase64 }: { venda: VendaCompleta; logoBase64?: string }) {
   const nomeCliente = venda.cliente?.nome ?? venda.clienteNomeAvulso ?? "—";
-  const nomeProduto = `${venda.produto.nome} ${venda.comEmbalagem ? "c/ embalagem" : "s/ embalagem"}`;
+  const nomeProduto = venda.produto.nome;
   const dataValidade = new Date(venda.criadoEm);
   dataValidade.setDate(dataValidade.getDate() + 7);
 
