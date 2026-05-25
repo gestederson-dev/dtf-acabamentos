@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import {
-  addYears, endOfYear, format, isWithinInterval,
+  endOfYear, format, isWithinInterval,
   startOfWeek, endOfWeek, startOfYear, subMonths, subYears,
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
