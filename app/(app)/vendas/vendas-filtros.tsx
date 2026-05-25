@@ -28,11 +28,21 @@ function parseLocal(s: string): Date {
 
 const MESES = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
 
+const STATUS_OPTIONS = [
+  { value: "",           label: "Todos os status", dot: "" },
+  { value: "ORCAMENTO",  label: "Orçamento",        dot: "bg-[#71717A]" },
+  { value: "CONFIRMADO", label: "Confirmado",        dot: "bg-[#232021] dark:bg-white" },
+  { value: "ENTREGUE",   label: "Entregue",          dot: "bg-[#A1A1AA]" },
+  { value: "PAGO",       label: "Pago",              dot: "bg-[#047857]" },
+  { value: "CANCELADO",  label: "Cancelado",         dot: "bg-[#B91C1C]" },
+];
+
 export function VendasFiltros(props: Props) {
   const router = useRouter();
   const today = new Date();
 
-  const [isOpen, setIsOpen] = useState(false);
+  const [calOpen, setCalOpen] = useState(false);
+  const [statusOpen, setStatusOpen] = useState(false);
   const [showCustom, setShowCustom] = useState(props.periodo === "custom");
   const [yearNav, setYearNav] = useState(() => {
     if (props.periodo === "mes") return parseInt(props.mesParam.split("-")[0]);
@@ -41,9 +51,10 @@ export function VendasFiltros(props: Props) {
   const [busca, setBusca] = useState(props.buscaParam);
   const [de, setDe] = useState(props.deParam);
   const [ate, setAte] = useState(props.ateParam);
-  const wrapperRef = useRef<HTMLDivElement>(null);
 
-  // Sincroniza estado interno quando props mudam após navegação
+  const calRef = useRef<HTMLDivElement>(null);
+  const statusRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     setShowCustom(props.periodo === "custom");
     if (props.periodo === "mes") setYearNav(parseInt(props.mesParam.split("-")[0]));
@@ -54,15 +65,13 @@ export function VendasFiltros(props: Props) {
 
   // Fecha ao clicar fora
   useEffect(() => {
-    if (!isOpen) return;
     function onMouseDown(e: MouseEvent) {
-      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
-        setIsOpen(false);
-      }
+      if (calOpen && calRef.current && !calRef.current.contains(e.target as Node)) setCalOpen(false);
+      if (statusOpen && statusRef.current && !statusRef.current.contains(e.target as Node)) setStatusOpen(false);
     }
     document.addEventListener("mousedown", onMouseDown);
     return () => document.removeEventListener("mousedown", onMouseDown);
-  }, [isOpen]);
+  }, [calOpen, statusOpen]);
 
   function buildUrl(overrides: Record<string, string>) {
     const base: Record<string, string> = {
@@ -84,11 +93,11 @@ export function VendasFiltros(props: Props) {
   }
 
   function navigate(params: Record<string, string>) {
-    setIsOpen(false);
+    setCalOpen(false);
+    setStatusOpen(false);
     router.push(buildUrl(params));
   }
 
-  // Definição dos atalhos
   const presets = [
     {
       label: "Hoje",
@@ -167,10 +176,6 @@ export function VendasFiltros(props: Props) {
     return y === yearNav && m === idx + 1;
   }
 
-  function handleMonthClick(idx: number) {
-    navigate({ periodo: "mes", mes: format(new Date(yearNav, idx), "yyyy-MM") });
-  }
-
   function getTriggerLabel() {
     const hit = presets.find((p) => p.isActive);
     if (hit) return hit.label;
@@ -191,43 +196,44 @@ export function VendasFiltros(props: Props) {
     return "Período";
   }
 
+  const activeStatus = STATUS_OPTIONS.find((s) => s.value === props.statusParam) ?? STATUS_OPTIONS[0];
+
   const inputCls =
     "h-10 w-full rounded-md border border-[#E4E4E7] bg-white px-3 text-sm text-[#232021] focus:outline-none focus:ring-1 focus:ring-[#232021] dark:border-[#27272A] dark:bg-[#18181B] dark:text-white";
 
-  const presetActiveCls =
-    "bg-[#F0FDF4] text-[#15803D] font-semibold dark:bg-green-400/10 dark:text-green-400";
-  const presetDefaultCls =
-    "text-[#232021] hover:bg-[#F4F4F5] dark:text-[#E5E7EB] dark:hover:bg-[#1C222B]";
+  const triggerCls =
+    "flex h-10 items-center gap-2 rounded-md border border-[#E4E4E7] bg-white px-3 text-sm font-medium text-[#232021] transition-colors hover:bg-[#F4F4F5] dark:border-[#27272A] dark:bg-[#18181B] dark:text-white dark:hover:bg-[#27272A]";
+
+  const presetActiveCls = "bg-[#F0FDF4] text-[#15803D] font-semibold dark:bg-green-400/10 dark:text-green-400";
+  const presetDefaultCls = "text-[#232021] hover:bg-[#F4F4F5] dark:text-[#E5E7EB] dark:hover:bg-[#1C222B]";
+
+  const chevron = (open: boolean) => (
+    <svg
+      width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden
+      className={`shrink-0 transition-transform duration-150 ${open ? "rotate-180" : ""}`}
+    >
+      <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
 
   return (
-    <div className="mb-6 space-y-3">
+    <div className="mb-6">
       <div className="flex flex-wrap items-center gap-2">
 
-        {/* ── Trigger + painel calendário ── */}
-        <div className="relative" ref={wrapperRef}>
-          <button
-            type="button"
-            onClick={() => setIsOpen((v) => !v)}
-            className="flex h-10 items-center gap-2 rounded-md border border-[#E4E4E7] bg-white px-3 text-sm font-medium text-[#232021] transition-colors hover:bg-[#F4F4F5] dark:border-[#27272A] dark:bg-[#18181B] dark:text-white dark:hover:bg-[#27272A]"
-          >
-            {/* Ícone calendário */}
+        {/* ── Calendário ── */}
+        <div className="relative" ref={calRef}>
+          <button type="button" onClick={() => { setCalOpen((v) => !v); setStatusOpen(false); }} className={triggerCls}>
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden>
               <rect x="2" y="3.5" width="12" height="11" rx="1.5" stroke="currentColor" strokeWidth="1.4" />
               <path d="M2 6.5h12" stroke="currentColor" strokeWidth="1.4" />
               <path d="M5 2v3M11 2v3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
             </svg>
             <span className="capitalize">{getTriggerLabel()}</span>
-            <svg
-              width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden
-              className={`transition-transform duration-150 ${isOpen ? "rotate-180" : ""}`}
-            >
-              <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
+            {chevron(calOpen)}
           </button>
 
-          {/* Painel dropdown */}
-          {isOpen && (
-            <div className="absolute left-0 top-12 z-50 overflow-hidden rounded-lg border border-[#E4E4E7] bg-white shadow-xl dark:border-[#27272A] dark:bg-[#0A0A0B]">
+          {calOpen && (
+            <div className="absolute left-0 top-12 z-50 overflow-hidden rounded-lg border border-[#E4E4E7] bg-white shadow-xl dark:border-[#27272A] dark:bg-[#0A0A0B]" style={{ minWidth: 380 }}>
 
               {/* Header */}
               <div className="flex items-center justify-between border-b border-[#E4E4E7] bg-[#FAFAFA] px-4 py-2.5 dark:border-[#27272A] dark:bg-[#111318]">
@@ -239,11 +245,11 @@ export function VendasFiltros(props: Props) {
                 </svg>
               </div>
 
-              {/* Corpo: atalhos | calendário */}
+              {/* Corpo */}
               <div className="flex">
 
-                {/* Coluna esquerda: atalhos */}
-                <div className="w-44 shrink-0 border-r border-[#E4E4E7] px-2 py-2.5 dark:border-[#1C222B]">
+                {/* Atalhos */}
+                <div className="w-40 shrink-0 border-r border-[#E4E4E7] px-2 py-2.5 dark:border-[#1C222B]">
                   <p className="mb-1.5 px-2.5 text-[10px] font-medium uppercase tracking-wider text-[#A1A1AA] dark:text-[#5B6573]">
                     Atalhos
                   </p>
@@ -252,9 +258,7 @@ export function VendasFiltros(props: Props) {
                       key={p.label}
                       type="button"
                       onClick={p.onSelect}
-                      className={`w-full rounded-md px-2.5 py-[7px] text-left text-[12.5px] transition-colors ${
-                        p.isActive ? presetActiveCls : presetDefaultCls
-                      }`}
+                      className={`w-full rounded-md px-2.5 py-[7px] text-left text-[12.5px] transition-colors ${p.isActive ? presetActiveCls : presetDefaultCls}`}
                     >
                       {p.label}
                     </button>
@@ -264,9 +268,7 @@ export function VendasFiltros(props: Props) {
                     type="button"
                     onClick={() => setShowCustom(true)}
                     className={`flex w-full items-center justify-between rounded-md px-2.5 py-[7px] text-[12.5px] transition-colors ${
-                      showCustom
-                        ? presetActiveCls
-                        : "text-[#71717A] hover:bg-[#F4F4F5] dark:text-[#9AA3B2] dark:hover:bg-[#1C222B]"
+                      showCustom ? presetActiveCls : "text-[#71717A] hover:bg-[#F4F4F5] dark:text-[#9AA3B2] dark:hover:bg-[#1C222B]"
                     }`}
                   >
                     <span>Personalizado</span>
@@ -274,7 +276,7 @@ export function VendasFiltros(props: Props) {
                   </button>
                 </div>
 
-                {/* Coluna direita: calendário ou range */}
+                {/* Calendário ou range */}
                 <div className="p-3">
                   {!showCustom ? (
                     <>
@@ -302,14 +304,14 @@ export function VendasFiltros(props: Props) {
                           </svg>
                         </button>
                       </div>
-                      {/* Grade 4×3 de meses */}
-                      <div className="grid grid-cols-4 gap-1.5">
+                      {/* Grade 4×3 */}
+                      <div className="grid grid-cols-4 gap-1">
                         {MESES.map((mes, i) => (
                           <button
                             key={mes}
                             type="button"
-                            onClick={() => handleMonthClick(i)}
-                            className={`h-11 w-[70px] rounded-md text-sm font-medium transition-colors ${
+                            onClick={() => navigate({ periodo: "mes", mes: format(new Date(yearNav, i), "yyyy-MM") })}
+                            className={`h-10 w-14 rounded-md text-sm font-medium transition-colors ${
                               isMonthActive(i)
                                 ? presetActiveCls + " border-b border-[#15803D] dark:border-green-400"
                                 : presetDefaultCls
@@ -321,8 +323,7 @@ export function VendasFiltros(props: Props) {
                       </div>
                     </>
                   ) : (
-                    /* Range personalizado */
-                    <div className="flex w-[240px] flex-col gap-3 py-1">
+                    <div className="flex w-52 flex-col gap-3 py-1">
                       <div>
                         <label className="mb-1 block text-xs text-[#71717A]">De</label>
                         <input type="date" value={de} onChange={(e) => setDe(e.target.value)} className={inputCls} />
@@ -335,7 +336,7 @@ export function VendasFiltros(props: Props) {
                         <button
                           type="button"
                           onClick={() => setShowCustom(false)}
-                          className="h-10 flex-1 rounded-md border border-[#E4E4E7] text-sm text-[#71717A] transition-colors hover:bg-[#F4F4F5] dark:border-[#27272A] dark:hover:bg-[#27272A] dark:text-white"
+                          className="h-10 flex-1 rounded-md border border-[#E4E4E7] text-sm text-[#71717A] transition-colors hover:bg-[#F4F4F5] dark:border-[#27272A] dark:text-white dark:hover:bg-[#27272A]"
                         >
                           Voltar
                         </button>
@@ -355,19 +356,42 @@ export function VendasFiltros(props: Props) {
           )}
         </div>
 
-        {/* ── Status ── */}
-        <select
-          value={props.statusParam}
-          onChange={(e) => router.push(buildUrl({ status: e.target.value }))}
-          className="h-10 rounded-md border border-[#E4E4E7] bg-white px-3 text-sm text-[#232021] focus:outline-none focus:ring-1 focus:ring-[#232021] dark:border-[#27272A] dark:bg-[#18181B] dark:text-white"
-        >
-          <option value="">Todos os status</option>
-          <option value="ORCAMENTO">Orçamento</option>
-          <option value="CONFIRMADO">Confirmado</option>
-          <option value="ENTREGUE">Entregue</option>
-          <option value="PAGO">Pago</option>
-          <option value="CANCELADO">Cancelado</option>
-        </select>
+        {/* ── Status dropdown customizado ── */}
+        <div className="relative" ref={statusRef}>
+          <button type="button" onClick={() => { setStatusOpen((v) => !v); setCalOpen(false); }} className={triggerCls}>
+            {activeStatus.dot && (
+              <span className={`h-2 w-2 shrink-0 rounded-full ${activeStatus.dot}`} />
+            )}
+            <span>{activeStatus.label}</span>
+            {chevron(statusOpen)}
+          </button>
+
+          {statusOpen && (
+            <div className="absolute left-0 top-12 z-50 w-48 overflow-hidden rounded-lg border border-[#E4E4E7] bg-white shadow-xl dark:border-[#27272A] dark:bg-[#0A0A0B]">
+              <div className="py-1.5">
+                {STATUS_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => { navigate({ status: opt.value }); }}
+                    className={`flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm transition-colors ${
+                      props.statusParam === opt.value
+                        ? "bg-[#F4F4F5] font-medium text-[#232021] dark:bg-[#27272A] dark:text-white"
+                        : "text-[#52525B] hover:bg-[#F4F4F5] dark:text-[#A1A1AA] dark:hover:bg-[#1C222B]"
+                    }`}
+                  >
+                    {opt.dot ? (
+                      <span className={`h-2 w-2 shrink-0 rounded-full ${opt.dot}`} />
+                    ) : (
+                      <span className="h-2 w-2 shrink-0" />
+                    )}
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* ── Busca ── */}
         <input
