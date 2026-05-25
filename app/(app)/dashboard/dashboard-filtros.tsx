@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -19,12 +20,23 @@ interface Props {
 
 export function DashboardFiltros({ periodoAtivo, mesCustom }: Props) {
   const router = useRouter();
+  const inputRef = useRef<HTMLInputElement>(null);
   const isCustom = periodoAtivo === "custom";
 
   function getCustomLabel() {
     if (!isCustom || !mesCustom) return "Mês específico";
     const [y, m] = mesCustom.split("-").map(Number);
     return format(new Date(y, m - 1), "MMM/yy", { locale: ptBR });
+  }
+
+  function abrirPicker() {
+    const el = inputRef.current;
+    if (!el) return;
+    if (typeof el.showPicker === "function") {
+      el.showPicker();
+    } else {
+      el.click();
+    }
   }
 
   const chipCls = (active: boolean) =>
@@ -47,21 +59,24 @@ export function DashboardFiltros({ periodoAtivo, mesCustom }: Props) {
         </button>
       ))}
 
-      {/* Personalizado — input nativo invisível sobreposto ao botão */}
-      <div className="relative">
-        <div className={chipCls(isCustom)}>
-          {getCustomLabel()}
-        </div>
-        <input
-          type="month"
-          value={mesCustom ?? ""}
-          onChange={(e) => {
-            if (e.target.value) router.push(`/dashboard?periodo=custom&mes=${e.target.value}`);
-          }}
-          className="absolute inset-0 cursor-pointer opacity-0"
-          aria-label="Selecionar mês específico"
-        />
-      </div>
+      <button
+        type="button"
+        onClick={abrirPicker}
+        className={chipCls(isCustom)}
+      >
+        {getCustomLabel()}
+      </button>
+      <input
+        ref={inputRef}
+        type="month"
+        value={mesCustom ?? ""}
+        onChange={(e) => {
+          if (e.target.value) router.push(`/dashboard?periodo=custom&mes=${e.target.value}`);
+        }}
+        className="sr-only"
+        aria-label="Selecionar mês específico"
+        tabIndex={-1}
+      />
     </div>
   );
 }
