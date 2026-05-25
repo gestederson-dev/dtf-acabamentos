@@ -4,8 +4,12 @@ import { prisma } from "@/lib/prisma";
 import { Role, StatusVenda } from "@prisma/client";
 import Link from "next/link";
 import { formatarMoeda, formatarPercent } from "@/lib/pricing";
-import { startOfMonth, endOfMonth, format } from "date-fns";
+import {
+  startOfMonth, endOfMonth, startOfDay, endOfDay,
+  startOfWeek, endOfWeek, format,
+} from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { VendasFiltros } from "./vendas-filtros";
 
 const STATUS_BADGE: Record<StatusVenda, { label: string; cls: string }> = {
   ORCAMENTO:  { label: "Orçamento",  cls: "border-[#E4E4E7] bg-white text-[#52525B]" },
@@ -15,20 +19,65 @@ const STATUS_BADGE: Record<StatusVenda, { label: string; cls: string }> = {
   CANCELADO:  { label: "Cancelado",  cls: "border-[#FECACA] bg-[#FEF2F2] text-[#B91C1C]" },
 };
 
+type Periodo = "dia" | "semana" | "mes" | "custom";
+
 interface Props {
-  searchParams: { mes?: string; status?: string; busca?: string };
+  searchParams: {
+    periodo?: string;
+    mes?: string;
+    dia?: string;
+    semana?: string;
+    de?: string;
+    ate?: string;
+    status?: string;
+    busca?: string;
+  };
+}
+
+function parseLocal(s: string): Date {
+  const [y, m, d] = s.split("-").map(Number);
+  return new Date(y, m - 1, d);
 }
 
 export default async function VendasPage({ searchParams }: Props) {
   const session = await getServerSession(authOptions);
   const isSocio = session?.user?.role === Role.SOCIO;
 
-  const mesParam = searchParams.mes;
-  const refDate = mesParam ? new Date(mesParam + "-01") : new Date();
-  const inicio = startOfMonth(refDate);
-  const fim = endOfMonth(refDate);
+  const periodo = (searchParams.periodo ?? "mes") as Periodo;
+  const today = new Date();
+
+  const diaParam = searchParams.dia ?? format(today, "yyyy-MM-dd");
+  const semanaParam = searchParams.semana ?? format(today, "yyyy-MM-dd");
+  const mesParam = searchParams.mes ?? format(today, "yyyy-MM");
+  const deParam = searchParams.de ?? format(startOfMonth(today), "yyyy-MM-dd");
+  const ateParam = searchParams.ate ?? format(endOfMonth(today), "yyyy-MM-dd");
   const statusFiltro = searchParams.status as StatusVenda | undefined;
-  const busca = searchParams.busca;
+  const busca = searchParams.busca ?? "";
+
+  let inicio: Date;
+  let fim: Date;
+  let periodoLabel: string;
+
+  if (periodo === "dia") {
+    const d = parseLocal(diaParam);
+    inicio = startOfDay(d);
+    fim = endOfDay(d);
+    periodoLabel = format(d, "EEEE, dd 'de' MMMM", { locale: ptBR });
+  } else if (periodo === "semana") {
+    const ref = parseLocal(semanaParam);
+    inicio = startOfWeek(ref, { weekStartsOn: 1 });
+    fim = endOfWeek(ref, { weekStartsOn: 1 });
+    periodoLabel = `${format(inicio, "dd/MM")} – ${format(fim, "dd/MM/yyyy")}`;
+  } else if (periodo === "custom") {
+    inicio = startOfDay(parseLocal(deParam));
+    fim = endOfDay(parseLocal(ateParam));
+    periodoLabel = `${format(inicio, "dd/MM/yyyy")} – ${format(fim, "dd/MM/yyyy")}`;
+  } else {
+    const refDate = parseLocal(mesParam + "-01");
+    inicio = startOfMonth(refDate);
+    fim = endOfMonth(refDate);
+    periodoLabel = format(refDate, "MMMM yyyy", { locale: ptBR });
+  }
 
   const where = {
     data: { gte: inicio, lte: fim },
@@ -36,8 +85,8 @@ export default async function VendasPage({ searchParams }: Props) {
     ...(!isSocio && session?.user?.id ? { vendedorId: session.user.id } : {}),
     ...(busca ? {
       OR: [
-        { clienteNomeAvulso: { contains: busca } },
-        { cliente: { nome: { contains: busca } } },
+        { clienteNomeAvulso: { contains: busca, mode: "insensitive" as const } },
+        { cliente: { nome: { contains: busca, mode: "insensitive" as const } } },
       ],
     } : {}),
   };
@@ -61,7 +110,6 @@ export default async function VendasPage({ searchParams }: Props) {
   const metros = totais._sum.metros ?? 0;
   const nVendas = totais._count.id;
   const margem = fat > 0 ? lucro / fat : 0;
-  const mesLabel = format(refDate, "MMMM yyyy", { locale: ptBR });
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 lg:px-8 lg:py-10">
@@ -70,7 +118,7 @@ export default async function VendasPage({ searchParams }: Props) {
       <div className="mb-8 flex items-start justify-between flex-wrap gap-4">
         <div>
           <h1 className="text-xl font-semibold tracking-tight text-[#232021] dark:text-white">Vendas</h1>
-          <p className="mt-0.5 text-sm capitalize text-[#71717A]">{mesLabel}</p>
+          <p className="mt-0.5 text-sm capitalize text-[#71717A]">{periodoLabel}</p>
         </div>
         <Link
           href="/vendas/nova"
@@ -101,37 +149,16 @@ export default async function VendasPage({ searchParams }: Props) {
       </div>
 
       {/* Filtros */}
-      <form className="mb-6 flex flex-wrap items-center gap-2">
-        <input
-          name="mes"
-          type="month"
-          defaultValue={mesParam ?? format(new Date(), "yyyy-MM")}
-          className="h-10 rounded-md border border-[#E4E4E7] bg-white px-3 text-sm text-[#232021] focus:outline-none focus:ring-1 focus:ring-[#232021] dark:border-[#27272A] dark:bg-[#18181B] dark:text-white"
-        />
-        <select
-          name="status"
-          defaultValue={statusFiltro ?? ""}
-          className="h-10 rounded-md border border-[#E4E4E7] bg-white px-3 text-sm text-[#232021] focus:outline-none focus:ring-1 focus:ring-[#232021] dark:border-[#27272A] dark:bg-[#18181B] dark:text-white"
-        >
-          <option value="">Todos os status</option>
-          {Object.entries(STATUS_BADGE).map(([k, v]) => (
-            <option key={k} value={k}>{v.label}</option>
-          ))}
-        </select>
-        <input
-          name="busca"
-          type="text"
-          defaultValue={busca ?? ""}
-          placeholder="Buscar cliente..."
-          className="h-10 min-w-[160px] flex-1 rounded-md border border-[#E4E4E7] bg-white px-3 text-sm text-[#232021] placeholder:text-[#A1A1AA] focus:outline-none focus:ring-1 focus:ring-[#232021] dark:border-[#27272A] dark:bg-[#18181B] dark:text-white"
-        />
-        <button
-          type="submit"
-          className="h-10 rounded-md border border-[#E4E4E7] bg-white px-4 text-sm font-medium text-[#232021] transition-colors hover:bg-[#F4F4F5] dark:border-[#27272A] dark:bg-[#18181B] dark:text-white dark:hover:bg-[#27272A]"
-        >
-          Filtrar
-        </button>
-      </form>
+      <VendasFiltros
+        periodo={periodo}
+        diaParam={diaParam}
+        semanaParam={semanaParam}
+        mesParam={mesParam}
+        deParam={deParam}
+        ateParam={ateParam}
+        statusParam={statusFiltro ?? ""}
+        buscaParam={busca}
+      />
 
       {/* Tabela */}
       {vendas.length === 0 ? (
