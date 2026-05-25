@@ -13,7 +13,7 @@ import { DashboardFiltros } from "./dashboard-filtros";
 import Link from "next/link";
 
 interface Props {
-  searchParams: { periodo?: string };
+  searchParams: { periodo?: string; mes?: string };
 }
 
 export default async function DashboardPage({ searchParams }: Props) {
@@ -21,6 +21,7 @@ export default async function DashboardPage({ searchParams }: Props) {
   const isSocio = session?.user?.role === Role.SOCIO;
 
   const periodo = searchParams.periodo ?? "mes";
+  const mesCustom = searchParams.mes;
   const today = new Date();
 
   // Calcula o intervalo dos KPIs baseado no filtro
@@ -28,7 +29,13 @@ export default async function DashboardPage({ searchParams }: Props) {
   let fimKPI: Date;
   let periodoLabel: string;
 
-  if (periodo === "mes_passado") {
+  if (periodo === "custom" && mesCustom) {
+    const [y, m] = mesCustom.split("-").map(Number);
+    const ref = new Date(y, m - 1);
+    inicioKPI = startOfMonth(ref);
+    fimKPI = endOfMonth(ref);
+    periodoLabel = format(ref, "MMMM 'de' yyyy", { locale: ptBR });
+  } else if (periodo === "mes_passado") {
     const ref = subMonths(today, 1);
     inicioKPI = startOfMonth(ref);
     fimKPI = endOfMonth(ref);
@@ -124,7 +131,7 @@ export default async function DashboardPage({ searchParams }: Props) {
           <h1 className="text-xl font-semibold tracking-tight text-[#232021] dark:text-white">Dashboard</h1>
           <p className="mt-0.5 text-sm capitalize text-[#71717A]">{periodoLabel}</p>
         </div>
-        <DashboardFiltros periodoAtivo={periodo} />
+        <DashboardFiltros periodoAtivo={periodo} mesCustom={mesCustom} />
       </div>
 
       {/* Separador decorativo */}
