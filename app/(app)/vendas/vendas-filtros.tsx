@@ -233,7 +233,7 @@ export function VendasFiltros(props: Props) {
           </button>
 
           {calOpen && (
-            <div className="absolute left-0 top-12 z-50 overflow-hidden rounded-lg border border-[#E4E4E7] bg-white shadow-xl dark:border-[#27272A] dark:bg-[#0A0A0B]" style={{ minWidth: 380 }}>
+            <div className="absolute left-0 top-12 z-50 w-[calc(100vw-1rem)] overflow-hidden rounded-lg border border-[#E4E4E7] bg-white shadow-xl sm:w-auto sm:min-w-[380px] dark:border-[#27272A] dark:bg-[#0A0A0B]">
 
               {/* Header */}
               <div className="flex items-center justify-between border-b border-[#E4E4E7] bg-[#FAFAFA] px-4 py-2.5 dark:border-[#27272A] dark:bg-[#111318]">
@@ -245,35 +245,38 @@ export function VendasFiltros(props: Props) {
                 </svg>
               </div>
 
-              {/* Corpo */}
-              <div className="flex">
+              {/* Corpo: empilhado no mobile, lado a lado no desktop */}
+              <div className="flex flex-col sm:flex-row">
 
-                {/* Atalhos */}
-                <div className="w-40 shrink-0 border-r border-[#E4E4E7] px-2 py-2.5 dark:border-[#1C222B]">
-                  <p className="mb-1.5 px-2.5 text-[10px] font-medium uppercase tracking-wider text-[#A1A1AA] dark:text-[#5B6573]">
+                {/* Atalhos: scroll horizontal no mobile, coluna no desktop */}
+                <div className="border-b border-[#E4E4E7] px-2 py-2 sm:w-40 sm:shrink-0 sm:border-b-0 sm:border-r sm:py-2.5 dark:border-[#1C222B]">
+                  <p className="mb-1 hidden px-2.5 text-[10px] font-medium uppercase tracking-wider text-[#A1A1AA] sm:block dark:text-[#5B6573]">
                     Atalhos
                   </p>
-                  {presets.map((p) => (
+                  {/* Mobile: chips em linha; Desktop: lista vertical */}
+                  <div className="flex flex-wrap gap-1 sm:flex-col sm:gap-0">
+                    {presets.map((p) => (
+                      <button
+                        key={p.label}
+                        type="button"
+                        onClick={p.onSelect}
+                        className={`rounded-md px-2.5 py-[7px] text-left text-[12.5px] transition-colors sm:w-full ${p.isActive ? presetActiveCls : presetDefaultCls}`}
+                      >
+                        {p.label}
+                      </button>
+                    ))}
+                    <div className="hidden w-full sm:my-1.5 sm:block sm:border-t sm:border-[#E4E4E7] dark:sm:border-[#1C222B]" />
                     <button
-                      key={p.label}
                       type="button"
-                      onClick={p.onSelect}
-                      className={`w-full rounded-md px-2.5 py-[7px] text-left text-[12.5px] transition-colors ${p.isActive ? presetActiveCls : presetDefaultCls}`}
+                      onClick={() => setShowCustom(true)}
+                      className={`flex items-center justify-between rounded-md px-2.5 py-[7px] text-[12.5px] transition-colors sm:w-full ${
+                        showCustom ? presetActiveCls : "text-[#71717A] hover:bg-[#F4F4F5] dark:text-[#9AA3B2] dark:hover:bg-[#1C222B]"
+                      }`}
                     >
-                      {p.label}
+                      <span>Personalizado</span>
+                      <span className="hidden text-base leading-none sm:inline">›</span>
                     </button>
-                  ))}
-                  <div className="my-1.5 border-t border-[#E4E4E7] dark:border-[#1C222B]" />
-                  <button
-                    type="button"
-                    onClick={() => setShowCustom(true)}
-                    className={`flex w-full items-center justify-between rounded-md px-2.5 py-[7px] text-[12.5px] transition-colors ${
-                      showCustom ? presetActiveCls : "text-[#71717A] hover:bg-[#F4F4F5] dark:text-[#9AA3B2] dark:hover:bg-[#1C222B]"
-                    }`}
-                  >
-                    <span>Personalizado</span>
-                    <span className="text-base leading-none">›</span>
-                  </button>
+                  </div>
                 </div>
 
                 {/* Calendário ou range */}
