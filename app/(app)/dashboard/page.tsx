@@ -58,9 +58,19 @@ export default async function DashboardPage({ searchParams }: Props) {
     periodoLabel = format(today, "MMMM 'de' yyyy", { locale: ptBR });
   }
 
+  const statusConfirmados = [StatusVenda.CONFIRMADO, StatusVenda.ENTREGUE, StatusVenda.PAGO];
+
+  // KPIs: apenas vendas confirmadas/entregues/pagas (faturamento real)
   const whereBase = {
     data: { gte: inicioKPI, lte: fimKPI },
-    status: { not: StatusVenda.CANCELADO },
+    status: { in: statusConfirmados },
+    ...(isSocio || !session ? {} : { vendedorId: session.user.id }),
+  };
+
+  // Orçamentos em aberto no período
+  const whereOrcamentos = {
+    data: { gte: inicioKPI, lte: fimKPI },
+    status: StatusVenda.ORCAMENTO,
     ...(isSocio || !session ? {} : { vendedorId: session.user.id }),
   };
 
@@ -69,7 +79,7 @@ export default async function DashboardPage({ searchParams }: Props) {
     ...(isSocio || !session ? {} : { vendedorId: session.user.id }),
   };
 
-  const [vendasRaw, totais, config] = await Promise.all([
+  const [vendasRaw, totais, orcamentosTotais, config] = await Promise.all([
     prisma.venda.findMany({
       where: whereVendas,
       orderBy: { data: "desc" },
@@ -78,6 +88,11 @@ export default async function DashboardPage({ searchParams }: Props) {
     prisma.venda.aggregate({
       where: whereBase,
       _sum: { valorTotal: true, lucroLimpo: true, custoComissao: true, metros: true },
+      _count: { id: true },
+    }),
+    prisma.venda.aggregate({
+      where: whereOrcamentos,
+      _sum: { valorTotal: true },
       _count: { id: true },
     }),
     prisma.configuracao.findFirst(),
@@ -90,11 +105,14 @@ export default async function DashboardPage({ searchParams }: Props) {
   const numVendas = totais._count.id;
   const margem = faturamento > 0 ? lucro / faturamento : 0;
 
+  const numOrcamentos = orcamentosTotais._count.id;
+  const valorOrcamentos = orcamentosTotais._sum.valorTotal ?? 0;
+
   const anoAtual = today.getFullYear();
   const faturamentoAnual = await prisma.venda.aggregate({
     where: {
       data: { gte: new Date(`${anoAtual}-01-01`), lte: new Date(`${anoAtual}-12-31`) },
-      status: { not: StatusVenda.CANCELADO },
+      status: { in: statusConfirmados },
     },
     _sum: { valorTotal: true },
   });
@@ -155,6 +173,22 @@ export default async function DashboardPage({ searchParams }: Props) {
       {isSocio && margem > 0 && margem < 0.30 && (
         <div className="mb-6 rounded-md border border-[#FDE68A] bg-[#FFFBEB] px-4 py-3 text-sm font-medium text-[#B45309]">
           ⚠️ Margem média do período: {formatarPercent(margem)} — abaixo de 30%
+        </div>
+      )}
+
+      {/* Orçamentos em aberto */}
+      {numOrcamentos > 0 && (
+        <div className="mb-6 flex items-center justify-between rounded-md border border-[#E4E4E7] bg-[#FAFAFA] px-4 py-3 dark:border-[#27272A] dark:bg-[#18181B]">
+          <div className="flex items-center gap-2 text-sm text-[#71717A]">
+            <span className="h-2 w-2 rounded-full bg-[#A1A1AA]" />
+            <span>
+              <span className="font-medium text-[#232021] dark:text-white">{numOrcamentos} orçamento{numOrcamentos !== 1 ? "s" : ""} em aberto</span>
+              {" · "}{formatarMoeda(valorOrcamentos)} em potencial
+            </span>
+          </div>
+          <Link href="/vendas?status=ORCAMENTO" className="text-xs text-[#71717A] underline-offset-2 hover:text-[#232021] hover:underline dark:hover:text-white">
+            Ver →
+          </Link>
         </div>
       )}
 

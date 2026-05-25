@@ -14,7 +14,7 @@ export async function dadosMensais(meses = 6) {
     const fim = endOfMonth(ref);
 
     const agg = await prisma.venda.aggregate({
-      where: { data: { gte: inicio, lte: fim }, status: { not: StatusVenda.CANCELADO } },
+      where: { data: { gte: inicio, lte: fim }, status: { in: [StatusVenda.CONFIRMADO, StatusVenda.ENTREGUE, StatusVenda.PAGO] } },
       _sum: { valorTotal: true, lucroLimpo: true },
     });
 
