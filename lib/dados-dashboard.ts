@@ -126,3 +126,34 @@ export async function vendasPorProduto() {
 export async function dadosSazonalidade(meses = 12) {
   return dadosMensais(meses);
 }
+
+/** Ranking de vendedores por faturamento total */
+export async function rankingVendedores() {
+  const vendas = await prisma.venda.findMany({
+    where: { status: { not: StatusVenda.CANCELADO } },
+    include: { vendedor: true },
+  });
+
+  const mapa = new Map<string, { nome: string; faturamento: number; lucro: number; comissao: number; vendas: number }>();
+
+  for (const v of vendas) {
+    const atual = mapa.get(v.vendedorId) ?? {
+      nome: v.vendedor.name ?? "—", faturamento: 0, lucro: 0, comissao: 0, vendas: 0,
+    };
+    mapa.set(v.vendedorId, {
+      nome: atual.nome,
+      faturamento: atual.faturamento + v.valorTotal,
+      lucro: atual.lucro + v.lucroLimpo,
+      comissao: atual.comissao + v.custoComissao,
+      vendas: atual.vendas + 1,
+    });
+  }
+
+  return Array.from(mapa.values())
+    .sort((a, b) => b.faturamento - a.faturamento)
+    .map((v) => ({
+      ...v,
+      margem: v.faturamento > 0 ? v.lucro / v.faturamento : 0,
+      ticketMedio: v.vendas > 0 ? v.faturamento / v.vendas : 0,
+    }));
+}

@@ -18,6 +18,7 @@ export type VendaResumo = {
   cliente: { nome: string } | null;
   clienteNomeAvulso: string | null;
   produto: { nome: string };
+  vendedorNome: string;
 };
 
 const STATUS_ORDER: StatusVenda[] = [
@@ -120,6 +121,7 @@ export function DashboardSections({ vendas, isSocio }: { vendas: VendaResumo[]; 
                           <span className="font-mono text-xs text-[#A1A1AA]">#{v.numero}</span>
                           <span className="truncate text-sm font-medium text-[#232021] dark:text-white">{nomeCliente}</span>
                           <span className="hidden text-xs text-[#71717A] sm:inline">{v.produto.nome}</span>
+                          {isSocio && <span className="hidden text-xs text-[#A1A1AA] lg:inline">· {v.vendedorNome}</span>}
                         </div>
                         <div className="mt-0.5 flex items-center gap-3">
                           <span className="font-mono text-xs tabular-nums text-[#71717A]">{formatarMoeda(v.valorTotal)}</span>

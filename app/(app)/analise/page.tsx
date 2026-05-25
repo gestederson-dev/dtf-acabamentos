@@ -3,7 +3,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Role } from "@prisma/client";
 import { redirect } from "next/navigation";
-import { dadosSazonalidade, topClientes, vendasPorProduto } from "@/lib/dados-dashboard";
+import { dadosSazonalidade, topClientes, vendasPorProduto, rankingVendedores } from "@/lib/dados-dashboard";
 import { AnaliseClient } from "./analise-client";
 
 export default async function AnalisePage() {
@@ -13,10 +13,11 @@ export default async function AnalisePage() {
   const config = await prisma.configuracao.findFirst();
   const produtos = await prisma.produto.findMany({ where: { ativo: true } });
 
-  const [sazonalidade, clientes, porProduto] = await Promise.all([
+  const [sazonalidade, clientes, porProduto, vendedores] = await Promise.all([
     dadosSazonalidade(12),
     topClientes(10),
     vendasPorProduto(),
+    rankingVendedores(),
   ]);
 
   return (
@@ -29,6 +30,7 @@ export default async function AnalisePage() {
         sazonalidade={sazonalidade}
         clientes={clientes}
         porProduto={porProduto}
+        vendedores={vendedores}
         config={config}
         produtos={produtos}
       />

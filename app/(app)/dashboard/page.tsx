@@ -73,7 +73,7 @@ export default async function DashboardPage({ searchParams }: Props) {
     prisma.venda.findMany({
       where: whereVendas,
       orderBy: { data: "desc" },
-      include: { cliente: true, produto: true },
+      include: { cliente: true, produto: true, vendedor: true },
     }),
     prisma.venda.aggregate({
       where: whereBase,
@@ -120,6 +120,7 @@ export default async function DashboardPage({ searchParams }: Props) {
     cliente: v.cliente ? { nome: v.cliente.nome } : null,
     clienteNomeAvulso: v.clienteNomeAvulso,
     produto: { nome: v.produto.nome },
+    vendedorNome: v.vendedor.name ?? "—",
   }));
 
   return (

@@ -9,22 +9,24 @@ import {
 } from "@/lib/pricing";
 import type { Configuracao, Produto } from "@prisma/client";
 
-interface MesData    { mes: string; faturamento: number; lucro: number; margem: number }
+interface MesData     { mes: string; faturamento: number; lucro: number; margem: number }
 interface ClienteData { nome: string; faturamento: number; lucro: number; vendas: number; margem: number }
 interface ProdutoData { label: string; metros: number; faturamento: number; vendas: number }
+interface VendedorData { nome: string; faturamento: number; lucro: number; comissao: number; vendas: number; margem: number; ticketMedio: number }
 
 interface Props {
   sazonalidade: MesData[];
   clientes: ClienteData[];
   porProduto: ProdutoData[];
+  vendedores: VendedorData[];
   config: Configuracao | null;
   produtos: Produto[];
 }
 
-const TABS = ["Sensibilidade", "Sazonalidade", "Por cliente", "Por produto"] as const;
+const TABS = ["Sensibilidade", "Sazonalidade", "Por cliente", "Por produto", "Por vendedor"] as const;
 type Tab = typeof TABS[number];
 
-export function AnaliseClient({ sazonalidade, clientes, porProduto, config, produtos }: Props) {
+export function AnaliseClient({ sazonalidade, clientes, porProduto, vendedores, config, produtos }: Props) {
   const [tab, setTab] = useState<Tab>("Sensibilidade");
 
   return (
@@ -46,10 +48,11 @@ export function AnaliseClient({ sazonalidade, clientes, porProduto, config, prod
         ))}
       </div>
 
-      {tab === "Sensibilidade" && <TabSensibilidade config={config} produtos={produtos} />}
-      {tab === "Sazonalidade"  && <TabSazonalidade dados={sazonalidade} />}
-      {tab === "Por cliente"   && <TabPorCliente clientes={clientes} />}
-      {tab === "Por produto"   && <TabPorProduto dados={porProduto} />}
+      {tab === "Sensibilidade"  && <TabSensibilidade config={config} produtos={produtos} />}
+      {tab === "Sazonalidade"   && <TabSazonalidade dados={sazonalidade} />}
+      {tab === "Por cliente"    && <TabPorCliente clientes={clientes} />}
+      {tab === "Por produto"    && <TabPorProduto dados={porProduto} />}
+      {tab === "Por vendedor"   && <TabPorVendedor vendedores={vendedores} />}
     </div>
   );
 }
@@ -298,6 +301,76 @@ function TabPorProduto({ dados }: { dados: ProdutoData[] }) {
                   <td className="px-4 py-3 text-right tabular-nums text-[#71717A]">{d.vendas}</td>
                 </tr>
               ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Tab 5: Por vendedor ── */
+function TabPorVendedor({ vendedores }: { vendedores: VendedorData[] }) {
+  if (!vendedores.length) return (
+    <div className="rounded-md border border-dashed border-[#E4E4E7] py-16 text-center dark:border-[#27272A]">
+      <p className="text-sm text-[#71717A]">Nenhum dado de vendedor ainda.</p>
+    </div>
+  );
+
+  const totalFat = vendedores.reduce((s, v) => s + v.faturamento, 0);
+  const totalCom = vendedores.reduce((s, v) => s + v.comissao, 0);
+
+  return (
+    <div className="space-y-4">
+      {/* Cards resumo */}
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+        <SummaryCard label="Vendedores ativos" value={String(vendedores.length)} />
+        <SummaryCard label="Faturamento total" value={formatarMoeda(totalFat)} />
+        <SummaryCard label="Comissão total" value={formatarMoeda(totalCom)} accent />
+      </div>
+
+      {/* Tabela */}
+      <div className="overflow-hidden rounded-md border border-[#E4E4E7] dark:border-[#27272A]">
+        <div className="border-b border-[#E4E4E7] bg-[#FAFAFA] px-5 py-4 dark:border-[#27272A] dark:bg-[#18181B]">
+          <p className="text-sm font-semibold text-[#232021] dark:text-white">Desempenho por vendedor</p>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="border-b border-[#E4E4E7] dark:border-[#27272A]">
+              <tr>
+                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#71717A]">Vendedor</th>
+                <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-[#71717A]">Faturamento</th>
+                <th className="hidden px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-[#71717A] sm:table-cell">Lucro</th>
+                <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-[#71717A]">Comissão</th>
+                <th className="hidden px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-[#71717A] md:table-cell">Ticket médio</th>
+                <th className="hidden px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-[#71717A] lg:table-cell">Margem</th>
+                <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-[#71717A]">Vendas</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#F4F4F5] dark:divide-[#27272A]">
+              {vendedores.map((v, i) => {
+                const sm = statusMargem(v.margem);
+                const share = totalFat > 0 ? v.faturamento / totalFat : 0;
+                return (
+                  <tr key={i} className="hover:bg-[#FAFAFA] dark:hover:bg-[#27272A]/40">
+                    <td className="px-4 py-3">
+                      <div className="font-medium text-[#232021] dark:text-white">{v.nome}</div>
+                      <div className="mt-0.5 h-1.5 w-full max-w-[120px] overflow-hidden rounded-full bg-[#F4F4F5] dark:bg-[#27272A]">
+                        <div className="h-full rounded-full bg-[#232021] dark:bg-white" style={{ width: `${share * 100}%` }} />
+                      </div>
+                      <div className="mt-0.5 text-[10px] text-[#A1A1AA]">{formatarPercent(share)} do total</div>
+                    </td>
+                    <td className="px-4 py-3 text-right font-mono tabular-nums text-[#232021] dark:text-white">{formatarMoeda(v.faturamento)}</td>
+                    <td className="hidden px-4 py-3 text-right font-mono tabular-nums text-[#047857] sm:table-cell">{formatarMoeda(v.lucro)}</td>
+                    <td className="px-4 py-3 text-right font-mono tabular-nums text-[#047857]">{formatarMoeda(v.comissao)}</td>
+                    <td className="hidden px-4 py-3 text-right font-mono tabular-nums text-[#71717A] md:table-cell">{formatarMoeda(v.ticketMedio)}</td>
+                    <td className="hidden px-4 py-3 text-right lg:table-cell">
+                      <span className="text-xs font-medium tabular-nums" style={{ color: sm.cor }}>{formatarPercent(v.margem)}</span>
+                    </td>
+                    <td className="px-4 py-3 text-right tabular-nums text-[#71717A]">{v.vendas}</td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

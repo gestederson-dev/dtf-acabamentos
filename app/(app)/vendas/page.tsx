@@ -182,6 +182,7 @@ export default async function VendasPage({ searchParams }: Props) {
                   <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-[#71717A]">Total</th>
                   {isSocio && <th className="hidden px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-[#71717A] lg:table-cell">Lucro</th>}
                   {!isSocio && <th className="hidden px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-[#71717A] lg:table-cell">Comissão</th>}
+                  {isSocio && <th className="hidden px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#71717A] xl:table-cell">Vendedor</th>}
                   <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-[#71717A]">Status</th>
                 </tr>
               </thead>
@@ -199,6 +200,7 @@ export default async function VendasPage({ searchParams }: Props) {
                         <td className="px-4 py-3 text-right font-mono tabular-nums font-medium text-[#232021] dark:text-white">{formatarMoeda(v.valorTotal)}</td>
                         {isSocio && <td className="hidden px-4 py-3 text-right font-mono tabular-nums text-[#047857] lg:table-cell">{formatarMoeda(v.lucroLimpo)}</td>}
                         {!isSocio && <td className="hidden px-4 py-3 text-right font-mono tabular-nums text-[#047857] lg:table-cell">{formatarMoeda(v.custoComissao)}</td>}
+                        {isSocio && <td className="hidden px-4 py-3 text-[#71717A] xl:table-cell">{v.vendedor.name ?? "—"}</td>}
                         <td className="px-4 py-3">
                           <span className={`inline-flex items-center rounded-sm border px-2 py-0.5 text-xs font-medium ${sb.cls}`}>{sb.label}</span>
                         </td>
