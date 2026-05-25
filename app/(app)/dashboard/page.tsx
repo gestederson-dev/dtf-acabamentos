@@ -3,31 +3,62 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Role, StatusVenda } from "@prisma/client";
 import { formatarMoeda, formatarPercent } from "@/lib/pricing";
-import { startOfMonth, endOfMonth, format } from "date-fns";
+import { startOfMonth, endOfMonth, startOfDay, endOfDay, subMonths, startOfYear, endOfYear, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { dadosMensais, dadosComissaoSemanal } from "@/lib/dados-dashboard";
 import { GraficoLucroMensal } from "@/components/charts/grafico-lucro-mensal";
 import { GraficoComissaoSemanal } from "@/components/charts/grafico-comissao-semanal";
 import { DashboardSections } from "./dashboard-sections";
+import { DashboardFiltros } from "./dashboard-filtros";
 import Link from "next/link";
 
-export default async function DashboardPage() {
+interface Props {
+  searchParams: { periodo?: string };
+}
+
+export default async function DashboardPage({ searchParams }: Props) {
   const session = await getServerSession(authOptions);
   const isSocio = session?.user?.role === Role.SOCIO;
 
-  const inicioMes = startOfMonth(new Date());
-  const fimMes = endOfMonth(new Date());
+  const periodo = searchParams.periodo ?? "mes";
+  const today = new Date();
 
-  // KPI aggregates exclude CANCELADO
+  // Calcula o intervalo dos KPIs baseado no filtro
+  let inicioKPI: Date;
+  let fimKPI: Date;
+  let periodoLabel: string;
+
+  if (periodo === "mes_passado") {
+    const ref = subMonths(today, 1);
+    inicioKPI = startOfMonth(ref);
+    fimKPI = endOfMonth(ref);
+    periodoLabel = format(ref, "MMMM 'de' yyyy", { locale: ptBR });
+  } else if (periodo === "3m") {
+    inicioKPI = startOfDay(subMonths(today, 3));
+    fimKPI = endOfDay(today);
+    periodoLabel = "últimos 3 meses";
+  } else if (periodo === "6m") {
+    inicioKPI = startOfDay(subMonths(today, 6));
+    fimKPI = endOfDay(today);
+    periodoLabel = "últimos 6 meses";
+  } else if (periodo === "ano") {
+    inicioKPI = startOfYear(today);
+    fimKPI = endOfYear(today);
+    periodoLabel = `ano de ${today.getFullYear()}`;
+  } else {
+    inicioKPI = startOfMonth(today);
+    fimKPI = endOfMonth(today);
+    periodoLabel = format(today, "MMMM 'de' yyyy", { locale: ptBR });
+  }
+
   const whereBase = {
-    data: { gte: inicioMes, lte: fimMes },
+    data: { gte: inicioKPI, lte: fimKPI },
     status: { not: StatusVenda.CANCELADO },
     ...(isSocio || !session ? {} : { vendedorId: session.user.id }),
   };
 
-  // Sections display includes all statuses
   const whereVendas = {
-    data: { gte: inicioMes, lte: fimMes },
+    data: { gte: startOfMonth(today), lte: endOfMonth(today) },
     ...(isSocio || !session ? {} : { vendedorId: session.user.id }),
   };
 
@@ -52,7 +83,7 @@ export default async function DashboardPage() {
   const numVendas = totais._count.id;
   const margem = faturamento > 0 ? lucro / faturamento : 0;
 
-  const anoAtual = new Date().getFullYear();
+  const anoAtual = today.getFullYear();
   const faturamentoAnual = await prisma.venda.aggregate({
     where: {
       data: { gte: new Date(`${anoAtual}-01-01`), lte: new Date(`${anoAtual}-12-31`) },
@@ -64,14 +95,12 @@ export default async function DashboardPage() {
   const tetoMEI = config?.tetoMEIAnual ?? 81000;
   const percentMEI = fatAnual / tetoMEI;
 
+  // Busca 12 meses para o gráfico (cliente filtra 3/6/12 internamente)
   const [grafMensal, grafComissao] = await Promise.all([
-    isSocio ? dadosMensais(6) : Promise.resolve([]),
+    isSocio ? dadosMensais(12) : Promise.resolve([]),
     (!isSocio && session?.user?.id) ? dadosComissaoSemanal(session.user.id, 8) : Promise.resolve([]),
   ]);
 
-  const mesLabel = format(new Date(), "MMMM 'de' yyyy", { locale: ptBR });
-
-  // Serialize dates for RSC → client boundary
   const vendas = vendasRaw.map((v) => ({
     id: v.id,
     numero: v.numero,
@@ -89,10 +118,13 @@ export default async function DashboardPage() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 lg:px-8 lg:py-10">
 
-      {/* Page header */}
-      <div className="mb-8">
-        <h1 className="text-xl font-semibold tracking-tight text-[#232021] dark:text-white">Dashboard</h1>
-        <p className="mt-0.5 text-sm capitalize text-[#71717A]">{mesLabel}</p>
+      {/* Header + filtros */}
+      <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-semibold tracking-tight text-[#232021] dark:text-white">Dashboard</h1>
+          <p className="mt-0.5 text-sm capitalize text-[#71717A]">{periodoLabel}</p>
+        </div>
+        <DashboardFiltros periodoAtivo={periodo} />
       </div>
 
       {/* Separador decorativo */}
@@ -114,7 +146,7 @@ export default async function DashboardPage() {
       )}
       {isSocio && margem > 0 && margem < 0.30 && (
         <div className="mb-6 rounded-md border border-[#FDE68A] bg-[#FFFBEB] px-4 py-3 text-sm font-medium text-[#B45309]">
-          ⚠️ Margem média do mês: {formatarPercent(margem)} — abaixo de 30%
+          ⚠️ Margem média do período: {formatarPercent(margem)} — abaixo de 30%
         </div>
       )}
 
@@ -142,12 +174,12 @@ export default async function DashboardPage() {
         )}
       </div>
 
-      {/* Gráficos */}
+      {/* Gráfico sócio */}
       {isSocio && (
         <div className="mb-8 rounded-md border border-[#E4E4E7] bg-white dark:border-[#27272A] dark:bg-[#18181B]">
           <div className="border-b border-[#E4E4E7] px-5 py-4 dark:border-[#27272A]">
-            <p className="text-sm font-semibold text-[#232021] dark:text-white">Lucro Líquido — últimos 6 meses</p>
-            <p className="mt-0.5 text-xs text-[#71717A]">Verde ≥35% · Amarelo 25–35% · Vermelho &lt;25%</p>
+            <p className="text-sm font-semibold text-[#232021] dark:text-white">Evolução histórica</p>
+            <p className="mt-0.5 text-xs text-[#71717A]">Alterne entre lucro e faturamento · selecione o período</p>
           </div>
           <div className="p-5">
             <GraficoLucroMensal dados={grafMensal} />
@@ -155,6 +187,7 @@ export default async function DashboardPage() {
         </div>
       )}
 
+      {/* Gráfico vendedor */}
       {!isSocio && (
         <div className="mb-8 rounded-md border border-[#E4E4E7] bg-white dark:border-[#27272A] dark:bg-[#18181B]">
           <div className="border-b border-[#E4E4E7] px-5 py-4 dark:border-[#27272A]">
