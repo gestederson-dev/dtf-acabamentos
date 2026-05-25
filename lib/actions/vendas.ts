@@ -86,6 +86,16 @@ export async function salvarVenda(formData: FormData) {
   redirect(`/vendas/${venda.id}`);
 }
 
+export async function deletarVenda(vendaId: string) {
+  const session = await getServerSession(authOptions);
+  if (!session || session.user.role !== Role.SOCIO) throw new Error("Sem permissão");
+
+  await prisma.venda.delete({ where: { id: vendaId } });
+  revalidatePath("/vendas");
+  revalidatePath("/dashboard");
+  redirect("/vendas");
+}
+
 export async function atualizarStatusVenda(vendaId: string, status: StatusVenda) {
   const session = await getServerSession(authOptions);
   if (!session) throw new Error("Não autenticado");

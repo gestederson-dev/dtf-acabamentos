@@ -9,6 +9,7 @@ import { formatarMoeda, formatarPercent, statusMargem } from "@/lib/pricing";
 import { AtualizarStatus } from "./atualizar-status";
 import { BotaoPDF } from "@/components/pdf/botao-pdf";
 import { LinkPublico } from "./link-publico";
+import { DeletarVenda } from "./deletar-venda";
 import Link from "next/link";
 
 const STATUS_BADGE: Record<StatusVenda, { label: string; cls: string }> = {
@@ -156,6 +157,11 @@ export default async function VendaDetalhePage({ params }: { params: { id: strin
 
       {/* Link público */}
       {venda.shareToken && <LinkPublico shareToken={venda.shareToken} />}
+
+      {/* Apagar orçamento — só sócio */}
+      {isSocio && venda.status === StatusVenda.ORCAMENTO && (
+        <DeletarVenda vendaId={venda.id} numero={venda.numero} />
+      )}
     </div>
   );
 }
