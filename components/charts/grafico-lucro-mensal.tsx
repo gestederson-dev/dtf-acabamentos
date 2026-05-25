@@ -113,6 +113,7 @@ export function GraficoLucroMensal({ dados }: { dados: MesData[] }) {
             tick={{ fontSize: 11, fill: "#71717A" }}
             axisLine={false} tickLine={false} width={48}
           />
+          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
           <Tooltip content={(p: any) => <TooltipCustom {...p} metrica={metrica} />} cursor={{ stroke: "#E4E4E7", strokeWidth: 1 }} />
           <Area
             type="monotone"
@@ -121,6 +122,7 @@ export function GraficoLucroMensal({ dados }: { dados: MesData[] }) {
             strokeWidth={2.5}
             strokeLinecap="round"
             fill={`url(#${gradId})`}
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             dot={(props: any) => {
               const { cx, cy, payload, key } = props;
               const dotColor = isLucro
