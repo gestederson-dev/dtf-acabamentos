@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -22,6 +22,7 @@ export function DashboardFiltros({ periodoAtivo, mesCustom }: Props) {
     return today.getFullYear();
   });
 
+  const [pending, startTransition] = useTransition();
   const calRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -40,7 +41,7 @@ export function DashboardFiltros({ periodoAtivo, mesCustom }: Props) {
     setCalOpen(false);
     const sp = new URLSearchParams();
     for (const [k, v] of Object.entries(params)) if (v) sp.set(k, v);
-    router.push(`/dashboard?${sp.toString()}`);
+    startTransition(() => { router.push(`/dashboard?${sp.toString()}`); });
   }
 
   const presets = [
@@ -107,7 +108,7 @@ export function DashboardFiltros({ periodoAtivo, mesCustom }: Props) {
       <button
         type="button"
         onClick={() => setCalOpen((v) => !v)}
-        className={triggerCls}
+        className={`${triggerCls} ${pending ? "opacity-60" : ""}`}
       >
         <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden>
           <rect x="2" y="3.5" width="12" height="11" rx="1.5" stroke="currentColor" strokeWidth="1.4" />

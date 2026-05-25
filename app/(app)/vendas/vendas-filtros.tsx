@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import {
   endOfYear, format, isWithinInterval,
   startOfWeek, endOfWeek, startOfYear, subMonths, subYears,
@@ -52,6 +52,7 @@ export function VendasFiltros(props: Props) {
   const [de, setDe] = useState(props.deParam);
   const [ate, setAte] = useState(props.ateParam);
 
+  const [pending, startTransition] = useTransition();
   const calRef = useRef<HTMLDivElement>(null);
   const statusRef = useRef<HTMLDivElement>(null);
 
@@ -95,7 +96,7 @@ export function VendasFiltros(props: Props) {
   function navigate(params: Record<string, string>) {
     setCalOpen(false);
     setStatusOpen(false);
-    router.push(buildUrl(params));
+    startTransition(() => { router.push(buildUrl(params)); });
   }
 
   const presets = [
@@ -222,7 +223,7 @@ export function VendasFiltros(props: Props) {
 
         {/* ── Calendário ── */}
         <div className="relative" ref={calRef}>
-          <button type="button" onClick={() => { setCalOpen((v) => !v); setStatusOpen(false); }} className={triggerCls}>
+          <button type="button" onClick={() => { setCalOpen((v) => !v); setStatusOpen(false); }} className={`${triggerCls} ${pending ? "opacity-60" : ""}`}>
             <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden>
               <rect x="2" y="3.5" width="12" height="11" rx="1.5" stroke="currentColor" strokeWidth="1.4" />
               <path d="M2 6.5h12" stroke="currentColor" strokeWidth="1.4" />
