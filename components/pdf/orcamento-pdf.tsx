@@ -56,6 +56,7 @@ export function OrcamentoPDF({ venda, logoBase64 }: { venda: VendaCompleta; logo
         {/* Cabeçalho */}
         <View style={[s.header, { flexDirection: "row", alignItems: "center", gap: 12 }]}>
           {logoBase64 ? (
+            {/* eslint-disable-next-line jsx-a11y/alt-text */}
             <Image src={logoBase64} style={{ width: 64, height: 64, objectFit: "contain" }} />
           ) : (
             <Text style={s.empresa}>DTF Acabamentos</Text>
