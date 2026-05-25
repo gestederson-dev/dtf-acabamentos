@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { format, subMonths, startOfYear, endOfYear } from "date-fns";
+import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 const MESES = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
