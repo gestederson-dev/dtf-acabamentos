@@ -163,9 +163,7 @@ export default async function VendasPage({ searchParams }: Props) {
               <KpiCard label="Custos" value={formatarMoeda(fat - lucro)} />
               <KpiCard label="Lucro" value={formatarMoeda(lucro)} accent />
               <KpiCard label="Margem" value={formatarPercent(margem)} accent={margem >= 0.35} warning={margem < 0.35 && margem > 0} />
-              <div className="col-span-2 md:col-span-1">
-                <KpiCard label="Ticket médio" value={nVendas > 0 ? formatarMoeda(fat / nVendas) : "R$ 0,00"} />
-              </div>
+              <KpiCard label="Ticket médio" value={nVendas > 0 ? formatarMoeda(fat / nVendas) : "R$ 0,00"} className="col-span-2 md:col-span-1" />
             </>
           ) : (
             <>
@@ -185,8 +183,8 @@ export default async function VendasPage({ searchParams }: Props) {
           <div className={`grid gap-4 ${isSocio ? "grid-cols-2 md:grid-cols-3" : "grid-cols-2"}`}>
             <KpiCard label="Orçamentos" value={String(nOrc)} sub="aguardando confirmação" muted />
             <KpiCard label="Valor em aberto" value={formatarMoeda(fatOrc)} muted />
-            {isSocio && <div className="col-span-2 md:col-span-1"><KpiCard label="Metros em aberto" value={`${metrosOrc.toFixed(1)} m`} muted /></div>}
-            {!isSocio && comissaoOrc > 0 && <div className="col-span-2"><KpiCard label="Comissão potencial" value={formatarMoeda(comissaoOrc)} muted /></div>}
+            {isSocio && <KpiCard label="Metros em aberto" value={`${metrosOrc.toFixed(1)} m`} muted className="col-span-2 md:col-span-1" />}
+            {!isSocio && comissaoOrc > 0 && <KpiCard label="Comissão potencial" value={formatarMoeda(comissaoOrc)} muted className="col-span-2" />}
           </div>
         </div>
       )}
@@ -261,9 +259,9 @@ export default async function VendasPage({ searchParams }: Props) {
   );
 }
 
-function KpiCard({ label, value, sub, accent, warning, muted }: {
+function KpiCard({ label, value, sub, accent, warning, muted, className }: {
   label: string; value: string; sub?: string;
-  accent?: boolean; warning?: boolean; muted?: boolean;
+  accent?: boolean; warning?: boolean; muted?: boolean; className?: string;
 }) {
   const valueColor = accent
     ? "text-[#047857]"
@@ -274,7 +272,7 @@ function KpiCard({ label, value, sub, accent, warning, muted }: {
     : "text-[#232021] dark:text-white";
 
   return (
-    <div className={`relative overflow-hidden rounded-md border p-4 ${muted ? "border-[#E4E4E7] bg-[#FAFAFA] dark:border-[#27272A] dark:bg-[#111318]" : "border-[#E4E4E7] bg-white dark:border-[#27272A] dark:bg-[#18181B]"}`}>
+    <div className={`relative overflow-hidden rounded-md border p-4 ${muted ? "border-[#E4E4E7] bg-[#FAFAFA] dark:border-[#27272A] dark:bg-[#111318]" : "border-[#E4E4E7] bg-white dark:border-[#27272A] dark:bg-[#18181B]"} ${className ?? ""}`}>
       <span className={`absolute bottom-3 left-0 top-3 w-[3px] ${muted ? "bg-[#E4E4E7] dark:bg-[#27272A]" : "bg-[#232021] dark:bg-white"}`} />
       <p className="text-[10px] font-medium uppercase tracking-wider text-[#71717A]">{label}</p>
       <p className={`mt-1.5 font-mono text-base sm:text-xl font-semibold tabular-nums ${valueColor}`}>{value}</p>
