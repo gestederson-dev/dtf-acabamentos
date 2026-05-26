@@ -91,25 +91,50 @@ export default async function VendasPage({ searchParams }: Props) {
     } : {}),
   };
 
-  const [vendas, totais] = await Promise.all([
+  const statusConfirmados = [StatusVenda.CONFIRMADO, StatusVenda.ENTREGUE, StatusVenda.PAGO];
+
+  // KPIs sempre baseados no período, sem filtro de status do dropdown
+  const wherePeriodo = {
+    data: { gte: inicio, lte: fim },
+    ...(!isSocio && session?.user?.id ? { vendedorId: session.user.id } : {}),
+    ...(busca ? {
+      OR: [
+        { clienteNomeAvulso: { contains: busca, mode: "insensitive" as const } },
+        { cliente: { nome: { contains: busca, mode: "insensitive" as const } } },
+      ],
+    } : {}),
+  };
+
+  const [vendas, totaisConf, totaisOrc] = await Promise.all([
     prisma.venda.findMany({
       where,
       orderBy: { data: "desc" },
       include: { cliente: true, produto: true, vendedor: true },
     }),
     prisma.venda.aggregate({
-      where: { ...where, status: { not: StatusVenda.CANCELADO } },
+      where: { ...wherePeriodo, status: { in: statusConfirmados } },
       _sum: { valorTotal: true, lucroLimpo: true, custoComissao: true, metros: true },
+      _count: { id: true },
+    }),
+    prisma.venda.aggregate({
+      where: { ...wherePeriodo, status: StatusVenda.ORCAMENTO },
+      _sum: { valorTotal: true, custoComissao: true, metros: true },
       _count: { id: true },
     }),
   ]);
 
-  const fat = totais._sum.valorTotal ?? 0;
-  const lucro = totais._sum.lucroLimpo ?? 0;
-  const comissao = totais._sum.custoComissao ?? 0;
-  const metros = totais._sum.metros ?? 0;
-  const nVendas = totais._count.id;
-  const margem = fat > 0 ? lucro / fat : 0;
+  const fat      = totaisConf._sum.valorTotal ?? 0;
+  const lucro    = totaisConf._sum.lucroLimpo ?? 0;
+  const comissao = totaisConf._sum.custoComissao ?? 0;
+  const metros   = totaisConf._sum.metros ?? 0;
+  const nVendas  = totaisConf._count.id;
+  const margem   = fat > 0 ? lucro / fat : 0;
+
+  const fatOrc      = totaisOrc._sum.valorTotal ?? 0;
+  const comissaoOrc = totaisOrc._sum.custoComissao ?? 0;
+  const metrosOrc   = totaisOrc._sum.metros ?? 0;
+  const nOrc        = totaisOrc._count.id;
+
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 lg:px-8 lg:py-10">
@@ -128,25 +153,42 @@ export default async function VendasPage({ searchParams }: Props) {
         </Link>
       </div>
 
-      {/* KPIs */}
-      <div className={`mb-8 grid gap-4 ${isSocio ? "grid-cols-2 md:grid-cols-5" : "grid-cols-2 md:grid-cols-4"}`}>
-        {isSocio ? (
-          <>
-            <KpiCard label="Faturamento" value={formatarMoeda(fat)} />
-            <KpiCard label="Custos" value={formatarMoeda(fat - lucro)} />
-            <KpiCard label="Lucro" value={formatarMoeda(lucro)} accent />
-            <KpiCard label="Margem" value={formatarPercent(margem)} accent={margem >= 0.35} warning={margem < 0.35 && margem > 0} />
-            <KpiCard label="Vendas" value={String(nVendas)} />
-          </>
-        ) : (
-          <>
-            <KpiCard label="Vendas" value={String(nVendas)} />
-            <KpiCard label="Comissão" value={formatarMoeda(comissao)} accent />
-            <KpiCard label="Metros" value={`${metros.toFixed(1)} m`} />
-            <KpiCard label="Ticket médio" value={nVendas > 0 ? formatarMoeda(fat / nVendas) : "R$ 0,00"} />
-          </>
-        )}
+      {/* KPIs — Vendas fechadas */}
+      <div className="mb-3">
+        <p className="mb-2 text-xs font-medium uppercase tracking-wider text-[#71717A]">Vendas fechadas</p>
+        <div className={`grid gap-4 ${isSocio ? "grid-cols-2 md:grid-cols-5" : "grid-cols-2 md:grid-cols-4"}`}>
+          {isSocio ? (
+            <>
+              <KpiCard label="Faturamento" value={formatarMoeda(fat)} sub={`${nVendas} venda${nVendas !== 1 ? "s" : ""}`} />
+              <KpiCard label="Custos" value={formatarMoeda(fat - lucro)} />
+              <KpiCard label="Lucro" value={formatarMoeda(lucro)} accent />
+              <KpiCard label="Margem" value={formatarPercent(margem)} accent={margem >= 0.35} warning={margem < 0.35 && margem > 0} />
+              <KpiCard label="Ticket médio" value={nVendas > 0 ? formatarMoeda(fat / nVendas) : "R$ 0,00"} />
+            </>
+          ) : (
+            <>
+              <KpiCard label="Vendas" value={String(nVendas)} />
+              <KpiCard label="Comissão" value={formatarMoeda(comissao)} accent />
+              <KpiCard label="Metros" value={`${metros.toFixed(1)} m`} />
+              <KpiCard label="Ticket médio" value={nVendas > 0 ? formatarMoeda(fat / nVendas) : "R$ 0,00"} />
+            </>
+          )}
+        </div>
       </div>
+
+      {/* KPIs — Orçamentos em aberto */}
+      {nOrc > 0 && (
+        <div className="mb-8">
+          <p className="mb-2 text-xs font-medium uppercase tracking-wider text-[#A1A1AA]">Orçamentos em aberto</p>
+          <div className={`grid gap-4 ${isSocio ? "grid-cols-2 md:grid-cols-3" : "grid-cols-2"}`}>
+            <KpiCard label="Orçamentos" value={String(nOrc)} sub="aguardando confirmação" muted />
+            <KpiCard label="Valor em aberto" value={formatarMoeda(fatOrc)} muted />
+            {isSocio && <KpiCard label="Metros em aberto" value={`${metrosOrc.toFixed(1)} m`} muted />}
+            {!isSocio && comissaoOrc > 0 && <KpiCard label="Comissão potencial" value={formatarMoeda(comissaoOrc)} muted />}
+          </div>
+        </div>
+      )}
+      {nOrc === 0 && <div className="mb-8" />}
 
       {/* Filtros */}
       <VendasFiltros
@@ -217,13 +259,24 @@ export default async function VendasPage({ searchParams }: Props) {
   );
 }
 
-function KpiCard({ label, value, accent, warning }: { label: string; value: string; accent?: boolean; warning?: boolean }) {
-  const valueColor = accent ? "text-[#047857]" : warning ? "text-[#B45309]" : "text-[#232021] dark:text-white";
+function KpiCard({ label, value, sub, accent, warning, muted }: {
+  label: string; value: string; sub?: string;
+  accent?: boolean; warning?: boolean; muted?: boolean;
+}) {
+  const valueColor = accent
+    ? "text-[#047857]"
+    : warning
+    ? "text-[#B45309]"
+    : muted
+    ? "text-[#71717A] dark:text-[#A1A1AA]"
+    : "text-[#232021] dark:text-white";
+
   return (
-    <div className="relative overflow-hidden rounded-md border border-[#E4E4E7] bg-white p-4 dark:border-[#27272A] dark:bg-[#18181B]">
-      <span className="absolute bottom-3 left-0 top-3 w-[3px] bg-[#232021] dark:bg-white" />
+    <div className={`relative overflow-hidden rounded-md border p-4 ${muted ? "border-[#E4E4E7] bg-[#FAFAFA] dark:border-[#27272A] dark:bg-[#111318]" : "border-[#E4E4E7] bg-white dark:border-[#27272A] dark:bg-[#18181B]"}`}>
+      <span className={`absolute bottom-3 left-0 top-3 w-[3px] ${muted ? "bg-[#E4E4E7] dark:bg-[#27272A]" : "bg-[#232021] dark:bg-white"}`} />
       <p className="text-[10px] font-medium uppercase tracking-wider text-[#71717A]">{label}</p>
       <p className={`mt-1.5 font-mono text-xl font-semibold tabular-nums ${valueColor}`}>{value}</p>
+      {sub && <p className="mt-0.5 text-[10px] text-[#A1A1AA]">{sub}</p>}
     </div>
   );
 }
