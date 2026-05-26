@@ -163,7 +163,9 @@ export default async function VendasPage({ searchParams }: Props) {
               <KpiCard label="Custos" value={formatarMoeda(fat - lucro)} />
               <KpiCard label="Lucro" value={formatarMoeda(lucro)} accent />
               <KpiCard label="Margem" value={formatarPercent(margem)} accent={margem >= 0.35} warning={margem < 0.35 && margem > 0} />
-              <KpiCard label="Ticket médio" value={nVendas > 0 ? formatarMoeda(fat / nVendas) : "R$ 0,00"} />
+              <div className="col-span-2 md:col-span-1">
+                <KpiCard label="Ticket médio" value={nVendas > 0 ? formatarMoeda(fat / nVendas) : "R$ 0,00"} />
+              </div>
             </>
           ) : (
             <>
@@ -183,8 +185,8 @@ export default async function VendasPage({ searchParams }: Props) {
           <div className={`grid gap-4 ${isSocio ? "grid-cols-2 md:grid-cols-3" : "grid-cols-2"}`}>
             <KpiCard label="Orçamentos" value={String(nOrc)} sub="aguardando confirmação" muted />
             <KpiCard label="Valor em aberto" value={formatarMoeda(fatOrc)} muted />
-            {isSocio && <KpiCard label="Metros em aberto" value={`${metrosOrc.toFixed(1)} m`} muted />}
-            {!isSocio && comissaoOrc > 0 && <KpiCard label="Comissão potencial" value={formatarMoeda(comissaoOrc)} muted />}
+            {isSocio && <div className="col-span-2 md:col-span-1"><KpiCard label="Metros em aberto" value={`${metrosOrc.toFixed(1)} m`} muted /></div>}
+            {!isSocio && comissaoOrc > 0 && <div className="col-span-2"><KpiCard label="Comissão potencial" value={formatarMoeda(comissaoOrc)} muted /></div>}
           </div>
         </div>
       )}
