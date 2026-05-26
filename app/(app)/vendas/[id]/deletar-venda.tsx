@@ -22,7 +22,7 @@ export function DeletarVenda({ vendaId, numero }: { vendaId: string; numero: num
           type="button"
           onClick={handleClick}
           disabled={isPending}
-          className="h-9 w-full rounded-md border border-[#FECACA] bg-white px-3 text-sm font-medium text-[#B91C1C] transition-colors hover:bg-[#FEF2F2] disabled:opacity-50 sm:w-auto dark:border-[#7F1D1D] dark:bg-transparent dark:text-[#FCA5A5] dark:hover:bg-[#7F1D1D]/20"
+          className="h-10 w-full rounded-md border border-[#FECACA] bg-white px-3 text-sm font-medium text-[#B91C1C] transition-colors hover:bg-[#FEF2F2] disabled:opacity-50 sm:w-auto dark:border-[#7F1D1D] dark:bg-transparent dark:text-[#FCA5A5] dark:hover:bg-[#7F1D1D]/20"
         >
           {isPending ? "Apagando..." : "Apagar orçamento"}
         </button>

@@ -141,8 +141,8 @@ export function DashboardSections({ vendas, isSocio }: { vendas: VendaResumo[]; 
                               disabled={isPending}
                               className={
                                 t.primary
-                                  ? "h-8 rounded-sm bg-[#232021] px-2.5 text-xs font-medium text-white hover:opacity-80 disabled:opacity-40 dark:bg-white dark:text-[#232021]"
-                                  : "h-8 rounded-sm border border-[#E4E4E7] px-2.5 text-xs font-medium text-[#71717A] hover:border-[#FECACA] hover:text-[#B91C1C] disabled:opacity-40 dark:border-[#27272A]"
+                                  ? "h-9 rounded-sm bg-[#232021] px-2.5 text-xs font-medium text-white hover:opacity-80 disabled:opacity-40 dark:bg-white dark:text-[#232021]"
+                                  : "h-9 rounded-sm border border-[#E4E4E7] px-2.5 text-xs font-medium text-[#71717A] hover:border-[#FECACA] hover:text-[#B91C1C] disabled:opacity-40 dark:border-[#27272A]"
                               }
                             >
                               {isLoading ? "..." : t.label}

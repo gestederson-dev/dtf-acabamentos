@@ -142,7 +142,7 @@ export default async function VendaDetalhePage({ params }: { params: { id: strin
                 <div className="border-t border-[#E4E4E7] pt-3 dark:border-[#27272A]">
                   <DataRow label="Sua comissão" value={formatarMoeda(venda.custoComissao)} mono accent />
                   <div className="mt-3">
-                    <DataRow label="Comissão/metro" value={formatarMoeda(venda.custoComissao / venda.metros)} mono />
+                    <DataRow label="Comissão/metro" value={venda.metros > 0 ? formatarMoeda(venda.custoComissao / venda.metros) : "—"} mono />
                   </div>
                 </div>
               </>

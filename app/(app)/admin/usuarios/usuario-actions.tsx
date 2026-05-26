@@ -25,7 +25,7 @@ export function UsuarioActions({ userId, ativo, isSelf }: { userId: string; ativ
       type="button"
       onClick={toggle}
       disabled={pending}
-      className={`shrink-0 h-7 rounded-sm border px-3 text-xs font-medium transition-colors disabled:opacity-40 ${
+      className={`shrink-0 h-9 rounded-sm border px-3 text-xs font-medium transition-colors disabled:opacity-40 ${
         ativo
           ? "border-[#E4E4E7] text-[#71717A] hover:border-[#FECACA] hover:text-[#B91C1C] dark:border-[#27272A]"
           : "border-[#A7F3D0] bg-[#ECFDF5] text-[#047857] hover:opacity-80"
