@@ -277,7 +277,7 @@ function KpiCard({ label, value, sub, accent, warning, muted }: {
     <div className={`relative overflow-hidden rounded-md border p-4 ${muted ? "border-[#E4E4E7] bg-[#FAFAFA] dark:border-[#27272A] dark:bg-[#111318]" : "border-[#E4E4E7] bg-white dark:border-[#27272A] dark:bg-[#18181B]"}`}>
       <span className={`absolute bottom-3 left-0 top-3 w-[3px] ${muted ? "bg-[#E4E4E7] dark:bg-[#27272A]" : "bg-[#232021] dark:bg-white"}`} />
       <p className="text-[10px] font-medium uppercase tracking-wider text-[#71717A]">{label}</p>
-      <p className={`mt-1.5 font-mono text-xl font-semibold tabular-nums ${valueColor}`}>{value}</p>
+      <p className={`mt-1.5 font-mono text-base sm:text-xl font-semibold tabular-nums ${valueColor}`}>{value}</p>
       {sub && <p className="mt-0.5 text-[10px] text-[#A1A1AA]">{sub}</p>}
     </div>
   );
