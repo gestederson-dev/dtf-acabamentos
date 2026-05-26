@@ -194,7 +194,7 @@ export default async function VendasPage({ searchParams }: Props) {
                       <tr className="cursor-pointer transition-colors hover:bg-[#FAFAFA] dark:hover:bg-[#27272A]/40">
                         <td className="px-4 py-3 font-mono text-xs text-[#A1A1AA]">#{v.numero}</td>
                         <td className="whitespace-nowrap px-4 py-3 text-[#71717A]">{format(v.data, "dd/MM/yy")}</td>
-                        <td className="max-w-[140px] truncate px-4 py-3 font-medium text-[#232021] dark:text-white">{v.cliente?.nome ?? v.clienteNomeAvulso ?? "—"}</td>
+                        <td className="max-w-[120px] truncate px-4 py-3 font-medium text-[#232021] sm:max-w-[200px] dark:text-white">{v.cliente?.nome ?? v.clienteNomeAvulso ?? "—"}</td>
                         <td className="hidden px-4 py-3 text-[#71717A] sm:table-cell">{v.produto.nome} {v.comEmbalagem ? "c/emb" : "s/emb"}</td>
                         <td className="hidden px-4 py-3 text-right font-mono tabular-nums text-[#71717A] md:table-cell">{v.metros} m</td>
                         <td className="px-4 py-3 text-right font-mono tabular-nums font-medium text-[#232021] dark:text-white">{formatarMoeda(v.valorTotal)}</td>

@@ -120,7 +120,7 @@ export function DashboardFiltros({ periodoAtivo, mesCustom }: Props) {
       </button>
 
       {calOpen && (
-        <div className="absolute right-0 top-11 z-50 w-[calc(100vw-1rem)] overflow-hidden rounded-lg border border-[#E4E4E7] bg-white shadow-xl sm:w-auto sm:min-w-[380px] dark:border-[#27272A] dark:bg-[#0A0A0B]">
+        <div className="absolute right-0 top-11 z-50 w-[calc(100vw-1rem)] max-h-[80vh] overflow-y-auto rounded-lg border border-[#E4E4E7] bg-white shadow-xl sm:w-auto sm:min-w-[380px] sm:overflow-visible dark:border-[#27272A] dark:bg-[#0A0A0B]">
 
           {/* Header */}
           <div className="flex items-center justify-between border-b border-[#E4E4E7] bg-[#FAFAFA] px-4 py-2.5 dark:border-[#27272A] dark:bg-[#111318]">
@@ -161,7 +161,7 @@ export function DashboardFiltros({ periodoAtivo, mesCustom }: Props) {
                 <button
                   type="button"
                   onClick={() => setYearNav((y) => y - 1)}
-                  className="flex h-7 w-7 items-center justify-center rounded-md text-[#71717A] transition-colors hover:bg-[#F4F4F5] hover:text-[#232021] dark:hover:bg-[#1C222B] dark:hover:text-white"
+                  className="flex h-9 w-9 items-center justify-center rounded-md text-[#71717A] transition-colors hover:bg-[#F4F4F5] hover:text-[#232021] dark:hover:bg-[#1C222B] dark:hover:text-white"
                   aria-label="Ano anterior"
                 >
                   <svg width="12" height="14" viewBox="0 0 14 16" fill="none" aria-hidden>
@@ -172,7 +172,7 @@ export function DashboardFiltros({ periodoAtivo, mesCustom }: Props) {
                 <button
                   type="button"
                   onClick={() => setYearNav((y) => y + 1)}
-                  className="flex h-7 w-7 items-center justify-center rounded-md text-[#71717A] transition-colors hover:bg-[#F4F4F5] hover:text-[#232021] dark:hover:bg-[#1C222B] dark:hover:text-white"
+                  className="flex h-9 w-9 items-center justify-center rounded-md text-[#71717A] transition-colors hover:bg-[#F4F4F5] hover:text-[#232021] dark:hover:bg-[#1C222B] dark:hover:text-white"
                   aria-label="Próximo ano"
                 >
                   <svg width="12" height="14" viewBox="0 0 14 16" fill="none" aria-hidden>
@@ -181,13 +181,13 @@ export function DashboardFiltros({ periodoAtivo, mesCustom }: Props) {
                 </button>
               </div>
               {/* Grade 4×3 */}
-              <div className="grid grid-cols-4 gap-1">
+              <div className="grid grid-cols-4 gap-1.5">
                 {MESES.map((mes, i) => (
                   <button
                     key={mes}
                     type="button"
                     onClick={() => navigate({ periodo: "custom", mes: format(new Date(yearNav, i), "yyyy-MM") })}
-                    className={`h-10 w-14 rounded-md text-sm font-medium transition-colors ${
+                    className={`h-11 w-full rounded-md text-sm font-medium transition-colors ${
                       isMonthActive(i)
                         ? presetActiveCls + " border-b border-[#15803D] dark:border-green-400"
                         : presetDefaultCls

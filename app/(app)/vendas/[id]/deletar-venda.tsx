@@ -13,7 +13,7 @@ export function DeletarVenda({ vendaId, numero }: { vendaId: string; numero: num
 
   return (
     <div className="mt-4 rounded-md border border-[#FECACA] bg-[#FEF2F2] px-4 py-3 dark:border-[#7F1D1D]/40 dark:bg-[#7F1D1D]/10">
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-sm font-medium text-[#B91C1C] dark:text-[#FCA5A5]">Zona de perigo</p>
           <p className="mt-0.5 text-xs text-[#B91C1C]/70 dark:text-[#FCA5A5]/70">Apagar este orçamento permanentemente.</p>
@@ -22,7 +22,7 @@ export function DeletarVenda({ vendaId, numero }: { vendaId: string; numero: num
           type="button"
           onClick={handleClick}
           disabled={isPending}
-          className="h-8 shrink-0 rounded-md border border-[#FECACA] bg-white px-3 text-xs font-medium text-[#B91C1C] transition-colors hover:bg-[#FEF2F2] disabled:opacity-50 dark:border-[#7F1D1D] dark:bg-transparent dark:text-[#FCA5A5] dark:hover:bg-[#7F1D1D]/20"
+          className="h-9 w-full rounded-md border border-[#FECACA] bg-white px-3 text-sm font-medium text-[#B91C1C] transition-colors hover:bg-[#FEF2F2] disabled:opacity-50 sm:w-auto dark:border-[#7F1D1D] dark:bg-transparent dark:text-[#FCA5A5] dark:hover:bg-[#7F1D1D]/20"
         >
           {isPending ? "Apagando..." : "Apagar orçamento"}
         </button>
