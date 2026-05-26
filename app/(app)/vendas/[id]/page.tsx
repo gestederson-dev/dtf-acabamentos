@@ -65,6 +65,14 @@ export default async function VendaDetalhePage({ params }: { params: { id: strin
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             <BotaoPDF vendaId={venda.id} />
+            {isSocio && venda.status === StatusVenda.ORCAMENTO && (
+              <Link
+                href={`/vendas/${venda.id}/editar`}
+                className="inline-flex h-8 items-center gap-1.5 rounded-md border border-[#E4E4E7] bg-white px-3 text-xs font-medium text-[#232021] transition-colors hover:bg-[#F4F4F5] dark:border-[#27272A] dark:bg-[#18181B] dark:text-white dark:hover:bg-[#27272A]"
+              >
+                Editar
+              </Link>
+            )}
             <span className={`inline-flex items-center rounded-sm border px-2.5 py-1 text-xs font-medium ${sb.cls}`}>
               {sb.label}
             </span>

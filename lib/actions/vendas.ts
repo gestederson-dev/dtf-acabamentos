@@ -86,6 +86,64 @@ export async function salvarVenda(formData: FormData) {
   redirect(`/vendas/${venda.id}`);
 }
 
+export async function editarVenda(vendaId: string, formData: FormData) {
+  const session = await getServerSession(authOptions);
+  if (!session || session.user.role !== Role.SOCIO) throw new Error("Sem permissão");
+
+  const config = await prisma.configuracao.findFirst();
+  if (!config) throw new Error("Configure os parâmetros primeiro");
+
+  const metrosRaw = Number(formData.get("metros"));
+  const metros = arredondarMetragem(metrosRaw);
+  const descontoPercent = Number(formData.get("descontoPercent")) / 100;
+  const comEmbalagem = formData.get("comEmbalagem") === "true";
+
+  const produto = await prisma.produto.findUnique({ where: { id: String(formData.get("produtoId")) } });
+  if (!produto) throw new Error("Produto não encontrado");
+
+  const embPorPeca = comEmbalagem ? config.custoEmbalagem / config.pecasPorCaixa : 0;
+  const pvPeca = calcularPrecoPorPeca(produto.custoUnitario, embPorPeca, config.percentLucro, config.percentComissao, config.percentImposto);
+  const pvMetro = calcularPrecoPorMetro(pvPeca);
+
+  const anatomia = calcularAnatomiaVenda({
+    metros, precoPorMetro: pvMetro, descontoPercent,
+    custoUnitario: produto.custoUnitario, custoEmbalagemPeca: embPorPeca,
+    comEmbalagem, percentImposto: config.percentImposto, percentComissao: config.percentComissao,
+  });
+
+  if (anatomia.margemReal < 0) throw new Error("Venda em prejuízo não permitida");
+
+  const clienteId = formData.get("clienteId") as string | null;
+  const clienteNomeAvulso = formData.get("clienteNomeAvulso") as string | null;
+
+  await prisma.venda.update({
+    where: { id: vendaId },
+    data: {
+      clienteId: clienteId || null,
+      clienteNomeAvulso: clienteNomeAvulso || null,
+      produtoId: produto.id,
+      comEmbalagem,
+      metros,
+      pecas: metros * 4,
+      precoUnitario: pvMetro,
+      descontoPercent,
+      valorTotal: anatomia.valorVenda,
+      custoProduto: anatomia.custoProduto,
+      custoEmbalagem: anatomia.custoEmbalagem,
+      custoImposto: anatomia.custoImposto,
+      custoComissao: anatomia.custoComissao,
+      lucroLimpo: anatomia.lucroLimpo,
+      formaPagamento: (formData.get("formaPagamento") as FormaPagamento) || FormaPagamento.PIX,
+      observacao: (formData.get("observacao") as string) || null,
+    },
+  });
+
+  revalidatePath(`/vendas/${vendaId}`);
+  revalidatePath("/vendas");
+  revalidatePath("/dashboard");
+  redirect(`/vendas/${vendaId}`);
+}
+
 export async function deletarVenda(vendaId: string) {
   const session = await getServerSession(authOptions);
   if (!session || session.user.role !== Role.SOCIO) throw new Error("Sem permissão");
