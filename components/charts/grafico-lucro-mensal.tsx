@@ -31,7 +31,7 @@ function TooltipCustom({ active, payload, label, metrica, lucroLabel }: {
       {metrica === "lucro" ? (
         <>
           <p className="text-[#047857]">{lucroLabel}: <span className="tabular-nums font-medium">{formatarMoeda(d.lucro)}</span></p>
-          <p className="mt-0.5 text-[#71717A]">Margem: <span className="tabular-nums">{formatarPercent(d.margem)}</span></p>
+          {lucroLabel === "Lucro" && <p className="mt-0.5 text-[#71717A]">Margem: <span className="tabular-nums">{formatarPercent(d.margem)}</span></p>}
           <p className="mt-0.5 text-[#71717A]">Fat.: <span className="tabular-nums">{formatarMoeda(d.faturamento)}</span></p>
         </>
       ) : (
@@ -141,8 +141,8 @@ export function GraficoLucroMensal({ dados, lucroLabel = "Lucro" }: { dados: Mes
         </AreaChart>
       </ResponsiveContainer>
 
-      {/* Legenda de cores (só para lucro) */}
-      {isLucro && (
+      {/* Legenda de cores (só para lucro do sócio) */}
+      {isLucro && lucroLabel === "Lucro" && (
         <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-[#A1A1AA]">
           <span className="flex items-center gap-1.5">
             <span className="h-2.5 w-2.5 rounded-full border-2 border-[#22c55e]" />Verde ≥35%
