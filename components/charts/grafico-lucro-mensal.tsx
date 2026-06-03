@@ -16,11 +16,12 @@ interface MesData {
 
 type Metrica = "lucro" | "faturamento";
 
-function TooltipCustom({ active, payload, label, metrica }: {
+function TooltipCustom({ active, payload, label, metrica, lucroLabel }: {
   active?: boolean;
   payload?: Array<{ payload: MesData }>;
   label?: string;
   metrica: Metrica;
+  lucroLabel: string;
 }) {
   if (!active || !payload?.length) return null;
   const d = payload[0].payload;
@@ -29,21 +30,21 @@ function TooltipCustom({ active, payload, label, metrica }: {
       <p className="mb-1.5 font-semibold text-[#232021] dark:text-white">{label}</p>
       {metrica === "lucro" ? (
         <>
-          <p className="text-[#047857]">Lucro: <span className="tabular-nums font-medium">{formatarMoeda(d.lucro)}</span></p>
+          <p className="text-[#047857]">{lucroLabel}: <span className="tabular-nums font-medium">{formatarMoeda(d.lucro)}</span></p>
           <p className="mt-0.5 text-[#71717A]">Margem: <span className="tabular-nums">{formatarPercent(d.margem)}</span></p>
           <p className="mt-0.5 text-[#71717A]">Fat.: <span className="tabular-nums">{formatarMoeda(d.faturamento)}</span></p>
         </>
       ) : (
         <>
           <p className="text-[#232021] dark:text-white">Fat.: <span className="tabular-nums font-medium">{formatarMoeda(d.faturamento)}</span></p>
-          <p className="mt-0.5 text-[#047857]">Lucro: <span className="tabular-nums">{formatarMoeda(d.lucro)}</span></p>
+          <p className="mt-0.5 text-[#047857]">{lucroLabel}: <span className="tabular-nums">{formatarMoeda(d.lucro)}</span></p>
         </>
       )}
     </div>
   );
 }
 
-export function GraficoLucroMensal({ dados }: { dados: MesData[] }) {
+export function GraficoLucroMensal({ dados, lucroLabel = "Lucro" }: { dados: MesData[]; lucroLabel?: string }) {
   const [metrica, setMetrica] = useState<Metrica>("lucro");
   const [nMeses, setNMeses] = useState(Math.min(6, dados.length));
 
@@ -81,7 +82,7 @@ export function GraficoLucroMensal({ dados }: { dados: MesData[] }) {
         {/* Toggle Lucro / Faturamento */}
         <div className="flex rounded-md border border-[#E4E4E7] p-0.5 dark:border-[#27272A]">
           <button type="button" onClick={() => setMetrica("lucro")} className={tabCls(isLucro)}>
-            Lucro
+            {lucroLabel}
           </button>
           <button type="button" onClick={() => setMetrica("faturamento")} className={tabCls(!isLucro)}>
             Faturamento
@@ -114,7 +115,7 @@ export function GraficoLucroMensal({ dados }: { dados: MesData[] }) {
             axisLine={false} tickLine={false} width={48}
           />
           {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-          <Tooltip content={(p: any) => <TooltipCustom {...p} metrica={metrica} />} cursor={{ stroke: "#E4E4E7", strokeWidth: 1 }} />
+          <Tooltip content={(p: any) => <TooltipCustom {...p} metrica={metrica} lucroLabel={lucroLabel} />} cursor={{ stroke: "#E4E4E7", strokeWidth: 1 }} />
           <Area
             type="monotone"
             dataKey={isLucro ? "lucro" : "faturamento"}

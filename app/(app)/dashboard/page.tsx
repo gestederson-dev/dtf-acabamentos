@@ -5,9 +5,8 @@ import { Role, StatusVenda } from "@prisma/client";
 import { formatarMoeda, formatarPercent } from "@/lib/pricing";
 import { startOfMonth, endOfMonth, startOfDay, endOfDay, subMonths, startOfYear, endOfYear, format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { dadosMensais, dadosComissaoSemanal } from "@/lib/dados-dashboard";
+import { dadosMensais, dadosSazonalidade } from "@/lib/dados-dashboard";
 import { GraficoLucroMensal } from "@/components/charts/grafico-lucro-mensal";
-import { GraficoComissaoSemanal } from "@/components/charts/grafico-comissao-semanal";
 import { DashboardSections } from "./dashboard-sections";
 import { DashboardFiltros } from "./dashboard-filtros";
 import Link from "next/link";
@@ -121,9 +120,10 @@ export default async function DashboardPage({ searchParams }: Props) {
   const percentMEI = fatAnual / tetoMEI;
 
   // Busca 12 meses para o gráfico (cliente filtra 3/6/12 internamente)
-  const [grafMensal, grafComissao] = await Promise.all([
+  const vendedorId = (!isSocio && session?.user?.id) ? session.user.id : undefined;
+  const [grafMensal, grafVendedor] = await Promise.all([
     isSocio ? dadosMensais(12) : Promise.resolve([]),
-    (!isSocio && session?.user?.id) ? dadosComissaoSemanal(session.user.id, 8) : Promise.resolve([]),
+    vendedorId ? dadosSazonalidade(12, vendedorId) : Promise.resolve([]),
   ]);
 
   const vendas = vendasRaw.map((v) => ({
@@ -233,10 +233,11 @@ export default async function DashboardPage({ searchParams }: Props) {
       {!isSocio && (
         <div className="mb-8 rounded-md border border-[#E4E4E7] bg-white dark:border-[#27272A] dark:bg-[#18181B]">
           <div className="border-b border-[#E4E4E7] px-5 py-4 dark:border-[#27272A]">
-            <p className="text-sm font-semibold text-[#232021] dark:text-white">Comissão semanal — últimas 8 semanas</p>
+            <p className="text-sm font-semibold text-[#232021] dark:text-white">Evolução histórica</p>
+            <p className="mt-0.5 text-xs text-[#71717A]">Alterne entre comissão e faturamento · selecione o período</p>
           </div>
           <div className="p-5">
-            <GraficoComissaoSemanal dados={grafComissao} />
+            <GraficoLucroMensal dados={grafVendedor} lucroLabel="Comissão" />
           </div>
         </div>
       )}
