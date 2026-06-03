@@ -69,9 +69,9 @@ export function EditarVendaClient({ vendaId, config, produtos, clientes, inicial
   const pecas     = nMetros * 4;
   const empack    = sugerirEmpacotamento(pecas, c?.pecasPorCaixa ?? 20);
 
-  const PESO_G: Record<number, number> = { 19: 0.335, 21: 0.370 };
-  const pesoPorPeca = produto ? (PESO_G[produto.larguraCm] ?? null) : null;
-  const pesoTotalKg = pesoPorPeca !== null ? (pecas * pesoPorPeca) / 1000 : null;
+  const PESO_KG: Record<number, number> = { 19: 0.335, 21: 0.370 };
+  const pesoPorPeca = produto ? (PESO_KG[produto.larguraCm] ?? null) : null;
+  const pesoTotalKg = pesoPorPeca !== null ? pecas * pesoPorPeca : null;
 
   const pvPeca  = produto ? calcularPrecoPorPeca(produto.custoUnitario, embPorPeca, pLucro, pComissao, pImposto) : 0;
   const pvMetro = calcularPrecoPorMetro(pvPeca);
