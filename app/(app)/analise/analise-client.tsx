@@ -21,22 +21,27 @@ interface Props {
   vendedores: VendedorData[];
   config: Configuracao | null;
   produtos: Produto[];
+  isSocio: boolean;
 }
 
-const TABS = ["Sensibilidade", "Sazonalidade", "Por cliente", "Por produto", "Por vendedor"] as const;
-type Tab = typeof TABS[number];
+const TABS_SOCIO    = ["Sensibilidade", "Sazonalidade", "Por cliente", "Por produto", "Por vendedor"] as const;
+const TABS_VENDEDOR = ["Sazonalidade", "Por cliente", "Por produto"] as const;
+type TabSocio    = typeof TABS_SOCIO[number];
+type TabVendedor = typeof TABS_VENDEDOR[number];
+type Tab = TabSocio | TabVendedor;
 
-export function AnaliseClient({ sazonalidade, clientes, porProduto, vendedores, config, produtos }: Props) {
-  const [tab, setTab] = useState<Tab>("Sensibilidade");
+export function AnaliseClient({ sazonalidade, clientes, porProduto, vendedores, config, produtos, isSocio }: Props) {
+  const tabs = isSocio ? TABS_SOCIO : TABS_VENDEDOR;
+  const [tab, setTab] = useState<Tab>(isSocio ? "Sensibilidade" : "Sazonalidade");
 
   return (
     <div className="space-y-5">
       {/* Tab bar */}
       <div className="flex flex-wrap gap-1 border-b border-[#E4E4E7] dark:border-[#27272A]">
-        {TABS.map((t) => (
+        {tabs.map((t) => (
           <button
             key={t}
-            onClick={() => setTab(t)}
+            onClick={() => setTab(t as Tab)}
             className={`relative px-4 py-2.5 text-sm font-medium transition-colors ${
               tab === t
                 ? "text-[#232021] after:absolute after:bottom-0 after:left-0 after:right-0 after:h-[2px] after:bg-[#232021] dark:text-white dark:after:bg-white"
@@ -49,7 +54,7 @@ export function AnaliseClient({ sazonalidade, clientes, porProduto, vendedores, 
       </div>
 
       {tab === "Sensibilidade"  && <TabSensibilidade config={config} produtos={produtos} />}
-      {tab === "Sazonalidade"   && <TabSazonalidade dados={sazonalidade} />}
+      {tab === "Sazonalidade"   && <TabSazonalidade dados={sazonalidade} isSocio={isSocio} />}
       {tab === "Por cliente"    && <TabPorCliente clientes={clientes} />}
       {tab === "Por produto"    && <TabPorProduto dados={porProduto} />}
       {tab === "Por vendedor"   && <TabPorVendedor vendedores={vendedores} />}
@@ -176,25 +181,28 @@ function SliderField({ label, value, min, max, step, onChange, configValue }: {
 }
 
 /* ── Tab 2: Sazonalidade ── */
-function TabSazonalidade({ dados }: { dados: MesData[] }) {
+function TabSazonalidade({ dados, isSocio }: { dados: MesData[]; isSocio: boolean }) {
   const totalFat    = dados.reduce((s, d) => s + d.faturamento, 0);
   const totalLucro  = dados.reduce((s, d) => s + d.lucro, 0);
   const margemMedia = totalFat > 0 ? totalLucro / totalFat : 0;
   const melhorMes   = [...dados].sort((a, b) => b.lucro - a.lucro)[0];
   const piorMes     = [...dados].filter((d) => d.faturamento > 0).sort((a, b) => a.margem - b.margem)[0];
+  const lucroLabel  = isSocio ? "Lucro 12m" : "Comissão 12m";
 
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
         <SummaryCard label="Faturamento 12m" value={formatarMoeda(totalFat)} />
-        <SummaryCard label="Lucro 12m" value={formatarMoeda(totalLucro)} accent />
-        <SummaryCard label="Margem média" value={formatarPercent(margemMedia)} accent={margemMedia >= 0.35} warning={margemMedia < 0.35} />
+        <SummaryCard label={lucroLabel} value={formatarMoeda(totalLucro)} accent />
+        {isSocio && <SummaryCard label="Margem média" value={formatarPercent(margemMedia)} accent={margemMedia >= 0.35} warning={margemMedia < 0.35} />}
         {melhorMes && <SummaryCard label="Melhor mês" value={`${melhorMes.mes}`} sub={formatarMoeda(melhorMes.lucro)} />}
-        {piorMes && <SummaryCard label="Margem mais baixa" value={piorMes.mes} sub={formatarPercent(piorMes.margem)} />}
+        {isSocio && piorMes && <SummaryCard label="Margem mais baixa" value={piorMes.mes} sub={formatarPercent(piorMes.margem)} />}
       </div>
       <div className="rounded-md border border-[#E4E4E7] bg-white dark:border-[#27272A] dark:bg-[#18181B]">
         <div className="border-b border-[#E4E4E7] px-5 py-4 dark:border-[#27272A]">
-          <p className="text-sm font-semibold text-[#232021] dark:text-white">Faturamento · Lucro · Margem — 12 meses</p>
+          <p className="text-sm font-semibold text-[#232021] dark:text-white">
+            {isSocio ? "Faturamento · Lucro · Margem — 12 meses" : "Faturamento · Comissão — 12 meses"}
+          </p>
         </div>
         <div className="p-5">
           <GraficoSazonalidade dados={dados} />

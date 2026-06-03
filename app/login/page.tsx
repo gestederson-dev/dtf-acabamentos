@@ -20,6 +20,8 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [loadingGoogle, setLoadingGoogle] = useState(false);
 
+  const [showPassword, setShowPassword] = useState(false);
+
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
   });
@@ -91,17 +93,39 @@ export default function LoginPage() {
                 {errors.email && <p className="mt-1 text-xs text-[#B91C1C]">{errors.email.message}</p>}
               </div>
               <div>
-                <input
-                  type="password"
-                  placeholder="Senha"
-                  autoComplete="current-password"
-                  {...register("password")}
-                  className={`h-10 w-full rounded-md border px-3 text-sm text-[#232021] placeholder:text-[#A1A1AA] focus:outline-none focus:ring-1 dark:bg-[#18181B] dark:text-white ${
-                    errors.password
-                      ? "border-[#B91C1C] focus:ring-[#B91C1C]"
-                      : "border-[#E4E4E7] focus:border-[#232021] focus:ring-[#232021] dark:border-[#27272A] dark:focus:border-white dark:focus:ring-white"
-                  }`}
-                />
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Senha"
+                    autoComplete="current-password"
+                    {...register("password")}
+                    className={`h-10 w-full rounded-md border px-3 pr-10 text-sm text-[#232021] placeholder:text-[#A1A1AA] focus:outline-none focus:ring-1 dark:bg-[#18181B] dark:text-white ${
+                      errors.password
+                        ? "border-[#B91C1C] focus:ring-[#B91C1C]"
+                        : "border-[#E4E4E7] focus:border-[#232021] focus:ring-[#232021] dark:border-[#27272A] dark:focus:border-white dark:focus:ring-white"
+                    }`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((v) => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#A1A1AA] hover:text-[#71717A]"
+                    tabIndex={-1}
+                    aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                  >
+                    {showPassword ? (
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                        <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                        <line x1="1" y1="1" x2="23" y2="23"/>
+                      </svg>
+                    ) : (
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                      </svg>
+                    )}
+                  </button>
+                </div>
                 {errors.password && <p className="mt-1 text-xs text-[#B91C1C]">{errors.password.message}</p>}
               </div>
               {error && (

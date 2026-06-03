@@ -17,7 +17,7 @@ const COMMANDS: Cmd[] = [
   { label: "Vendas", desc: "Histórico de vendas", href: "/vendas" },
   { label: "Calculadora de preços", desc: "Simular preços e margens", href: "/calculadora-preco" },
   { label: "Clientes", desc: "Cadastro de clientes", href: "/clientes" },
-  { label: "Análise", desc: "Sazonalidade, sensibilidade, produtos", href: "/analise", soSocio: true },
+  { label: "Análise", desc: "Sazonalidade, sensibilidade, produtos", href: "/analise" },
   { label: "Configurações", desc: "Parâmetros de precificação", href: "/configuracoes", soSocio: true },
 ];
 

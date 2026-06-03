@@ -58,10 +58,10 @@ export async function dadosComissaoSemanal(vendedorId: string, semanas = 8) {
   return resultado;
 }
 
-/** Top 10 clientes por faturamento */
-export async function topClientes(limite = 10) {
+/** Top 10 clientes por faturamento (opcional: filtrar por vendedor) */
+export async function topClientes(limite = 10, vendedorId?: string) {
   const vendas = await prisma.venda.findMany({
-    where: { status: { not: StatusVenda.CANCELADO }, clienteId: { not: null } },
+    where: { status: { not: StatusVenda.CANCELADO }, clienteId: { not: null }, ...(vendedorId ? { vendedorId } : {}) },
     include: { cliente: true },
   });
 
@@ -84,8 +84,8 @@ export async function topClientes(limite = 10) {
     .map((c) => ({ ...c, margem: c.faturamento > 0 ? c.lucro / c.faturamento : 0 }));
 }
 
-/** Vendas por variação de produto */
-export async function vendasPorProduto() {
+/** Vendas por variação de produto (opcional: filtrar por vendedor) */
+export async function vendasPorProduto(vendedorId?: string) {
   const variações = [
     { produtoNome: "Pingadeira 21 cm", comEmbalagem: true, label: "P21 c/emb" },
     { produtoNome: "Pingadeira 21 cm", comEmbalagem: false, label: "P21 s/emb" },
@@ -105,6 +105,7 @@ export async function vendasPorProduto() {
           produtoId: produto.id,
           comEmbalagem: v.comEmbalagem,
           status: { not: StatusVenda.CANCELADO },
+          ...(vendedorId ? { vendedorId } : {}),
         },
         _sum: { metros: true, valorTotal: true },
         _count: { id: true },
@@ -122,9 +123,30 @@ export async function vendasPorProduto() {
   return resultado;
 }
 
-/** Dados mensais dos últimos 12 meses para sazonalidade */
-export async function dadosSazonalidade(meses = 12) {
-  return dadosMensais(meses);
+/** Dados mensais dos últimos 12 meses para sazonalidade (opcional: filtrar por vendedor) */
+export async function dadosSazonalidade(meses = 12, vendedorId?: string) {
+  if (!vendedorId) return dadosMensais(meses);
+
+  const resultado = [];
+  const hoje = new Date();
+  const { subMonths, startOfMonth, endOfMonth, format } = await import("date-fns");
+  const { ptBR } = await import("date-fns/locale");
+
+  for (let i = meses - 1; i >= 0; i--) {
+    const ref = subMonths(hoje, i);
+    const inicio = startOfMonth(ref);
+    const fim = endOfMonth(ref);
+
+    const agg = await prisma.venda.aggregate({
+      where: { vendedorId, data: { gte: inicio, lte: fim }, status: { in: [StatusVenda.CONFIRMADO, StatusVenda.ENTREGUE, StatusVenda.PAGO] } },
+      _sum: { valorTotal: true, custoComissao: true },
+    });
+
+    const fat = agg._sum.valorTotal ?? 0;
+    const comissao = agg._sum.custoComissao ?? 0;
+    resultado.push({ mes: format(ref, "MMM/yy", { locale: ptBR }), faturamento: fat, lucro: comissao, margem: fat > 0 ? comissao / fat : 0 });
+  }
+  return resultado;
 }
 
 /** Ranking de vendedores por faturamento total */
