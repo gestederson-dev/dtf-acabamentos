@@ -61,6 +61,10 @@ export function OrcamentoClient({ config, produtos, clientes, isSocio }: Props) 
   const pecas    = nMetros * 4;
   const empack   = sugerirEmpacotamento(pecas, c?.pecasPorCaixa ?? 20);
 
+  const PESO_G: Record<number, number> = { 19: 0.335, 21: 0.370 };
+  const pesoPorPeca = produto ? (PESO_G[produto.larguraCm] ?? null) : null;
+  const pesoTotalKg = pesoPorPeca !== null ? (pecas * pesoPorPeca) / 1000 : null;
+
   const pvPeca  = produto
     ? calcularPrecoPorPeca(produto.custoUnitario, embPorPeca, pLucro, pComissao, pImposto)
     : 0;
@@ -260,6 +264,7 @@ Subtotal: ${formatarMoeda(anatomia?.faturamentoBruto ?? 0)}${nDesconto > 0 ? `\n
               <ORow label="Metragem" value={`${nMetros} m`} />
               <ORow label="Peças" value={`${pecas} peças`} />
               <ORow label="Caixas + avulsas" value={`${empack.caixas} cx + ${empack.avulsas} avulsas`} />
+              {pesoTotalKg !== null && <ORow label="Peso total" value={`${pesoTotalKg.toFixed(2)} kg`} />}
               {freteGratis && <ORow label="Frete" value="Grátis" accent />}
               <div className="border-t border-[#E4E4E7] pt-3 dark:border-[#27272A]">
                 <ORow label="Preço/metro" value={formatarMoeda(pvMetro)} mono />
